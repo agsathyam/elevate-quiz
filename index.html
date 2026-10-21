@@ -1,0 +1,1363 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Elevate Technical Certification Practice Exam</title>
+  <style>
+    :root {
+      --primary: #1a73e8;
+      --primary-hover: #1557b0;
+      --bg: #f8f9fa;
+      --card-bg: #ffffff;
+      --text: #202124;
+      --text-secondary: #5f6368;
+      --border: #dadce0;
+      --success: #1e8e3e;
+      --danger: #d93025;
+      --warning: #f9ab00;
+      --flagged: #e37400;
+      --radius: 8px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+    body { background-color: var(--bg); color: var(--text); line-height: 1.5; padding-bottom: 60px; }
+
+    header {
+      background: var(--card-bg);
+      border-bottom: 1px solid var(--border);
+      padding: 16px 24px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 1px 2px rgba(60,64,67,0.1);
+    }
+    .header-title h1 { font-size: 1.25rem; font-weight: 600; color: #1f1f1f; }
+    .header-title p { font-size: 0.85rem; color: var(--text-secondary); }
+    .header-stats { display: flex; gap: 16px; align-items: center; font-size: 0.9rem; font-weight: 500; }
+    .stat-badge { padding: 4px 10px; border-radius: 12px; background: #e8f0fe; color: var(--primary); }
+
+    .container { max-width: 1200px; margin: 24px auto; padding: 0 16px; display: grid; grid-template-columns: 320px 1fr; gap: 24px; }
+    @media (max-width: 860px) { .container { grid-template-columns: 1fr; } }
+
+    /* Sidebar / Grid */
+    .sidebar { background: var(--card-bg); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; height: fit-content; }
+    .sidebar h2 { font-size: 1rem; margin-bottom: 12px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px; }
+    .module-select { width: 100%; padding: 8px 12px; border: 1px solid var(--border); border-radius: 6px; margin-bottom: 16px; font-size: 0.9rem; background: #fff; }
+    .grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin-bottom: 16px; max-height: 400px; overflow-y: auto; padding-right: 4px; }
+    .grid-btn {
+      aspect-ratio: 1;
+      border: 1px solid var(--border);
+      background: #fff;
+      border-radius: 6px;
+      font-weight: 600;
+      font-size: 0.85rem;
+      cursor: pointer;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.15s ease;
+    }
+    .grid-btn:hover { border-color: var(--primary); background: #f1f3f4; }
+    .grid-btn.current { border: 2px solid var(--primary); font-weight: 700; }
+    .grid-btn.answered { background: #e8f0fe; color: var(--primary); border-color: #aecbfa; }
+    .grid-btn.flagged::after {
+      content: "🚩";
+      font-size: 8px;
+      position: absolute;
+      top: 2px;
+      right: 2px;
+    }
+    .grid-btn.flagged { border-color: var(--flagged); }
+    .grid-btn.correct-eval { background: #e6f4ea !important; color: var(--success) !important; border-color: #ceead6 !important; }
+    .grid-btn.wrong-eval { background: #fce8e6 !important; color: var(--danger) !important; border-color: #fad2cf !important; }
+
+    .legend { font-size: 0.8rem; color: var(--text-secondary); display: flex; flex-direction: column; gap: 6px; border-top: 1px solid var(--border); padding-top: 12px; }
+    .legend-item { display: flex; align-items: center; gap: 8px; }
+    .legend-box { width: 14px; height: 14px; border-radius: 3px; border: 1px solid var(--border); }
+
+    /* Main Quiz View */
+    .card { background: var(--card-bg); border: 1px solid var(--border); border-radius: var(--radius); padding: 24px; box-shadow: 0 1px 2px rgba(60,64,67,0.05); }
+    .q-meta { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+    .q-badge { font-size: 0.75rem; font-weight: 600; text-transform: uppercase; background: #e8eaed; padding: 4px 8px; border-radius: 4px; color: #3c4043; }
+    .flag-btn { background: none; border: 1px solid var(--border); padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 0.85rem; display: flex; align-items: center; gap: 6px; color: var(--text-secondary); }
+    .flag-btn.active { background: #fef7e0; border-color: var(--warning); color: #b06000; font-weight: 600; }
+    .q-text { font-size: 1.05rem; font-weight: 500; margin-bottom: 20px; line-height: 1.6; }
+
+    .options { display: flex; flex-direction: column; gap: 12px; margin-bottom: 24px; }
+    .option {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 14px 16px;
+      cursor: pointer;
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      transition: background 0.15s, border-color 0.15s;
+    }
+    .option:hover { background: #f8f9fa; border-color: #bdc1c6; }
+    .option.selected { background: #e8f0fe; border-color: var(--primary); }
+    .option-letter { font-weight: 700; width: 22px; flex-shrink: 0; }
+    .option-text { font-size: 0.95rem; }
+
+    .nav-actions { display: flex; justify-content: space-between; align-items: center; margin-top: 20px; border-top: 1px solid var(--border); padding-top: 16px; }
+    .btn { padding: 9px 18px; border-radius: 6px; font-weight: 500; font-size: 0.9rem; cursor: pointer; border: none; transition: all 0.2s; }
+    .btn-secondary { background: #f1f3f4; color: var(--text); }
+    .btn-secondary:hover { background: #e8eaed; }
+    .btn-primary { background: var(--primary); color: #fff; }
+    .btn-primary:hover { background: var(--primary-hover); }
+    .btn-submit { background: var(--success); color: #fff; }
+    .btn-submit:hover { background: #137333; }
+
+    /* Results Screen */
+    .results-card { display: none; }
+    .score-summary { text-align: center; padding: 24px 0; border-bottom: 1px solid var(--border); margin-bottom: 24px; }
+    .score-big { font-size: 3rem; font-weight: 800; color: var(--primary); }
+    .score-status { font-size: 1.1rem; font-weight: 600; margin-top: 8px; }
+    .pass { color: var(--success); }
+    .fail { color: var(--danger); }
+    .module-breakdown { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-bottom: 24px; }
+    .mod-box { background: #f8f9fa; border: 1px solid var(--border); border-radius: 6px; padding: 12px; text-align: center; }
+    .mod-box h4 { font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 6px; }
+    .mod-box p { font-size: 1.15rem; font-weight: 700; }
+
+    /* Explanation Accordion / Drawer */
+    .review-item { border: 1px solid var(--border); border-radius: 8px; margin-bottom: 16px; padding: 16px; background: #fff; }
+    .review-item.is-correct { border-left: 6px solid var(--success); }
+    .review-item.is-wrong { border-left: 6px solid var(--danger); }
+    .review-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+    .review-status { font-weight: 700; font-size: 0.85rem; }
+    .explanation-box { background: #f8f9fa; border-radius: 6px; padding: 14px; margin-top: 14px; font-size: 0.9rem; line-height: 1.6; }
+    .explanation-box p { margin-bottom: 8px; }
+    .explanation-box p:last-child { margin-bottom: 0; }
+    .exp-title { font-weight: 700; color: #202124; }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="header-title">
+      <h1>Elevate Technical Assessment — Practice Simulator</h1>
+      <p>54 Exam-Grade Practice Questions (Passing Bar: 90%)</p>
+    </div>
+    <div class="header-stats">
+      <span>Answered: <strong id="answered-count">0</strong> / 54</span>
+      <span class="stat-badge" id="flagged-count">0 Flagged</span>
+      <button class="btn btn-submit" id="btn-top-submit" onclick="submitExam()">Finish & Score</button>
+    </div>
+  </header>
+
+  <div class="container">
+    <!-- Sidebar Navigation -->
+    <div class="sidebar">
+      <h2>Question Navigator</h2>
+      <select id="module-filter" class="module-select" onchange="filterByModule()">
+        <option value="all">All Modules (54 Questions)</option>
+        <option value="Module 0">Module 0: Foundations & ADK (16)</option>
+        <option value="Module 1">Module 1: Skills, Context & MCP (9)</option>
+        <option value="Module 2">Module 2: AI Threat Defense & Gov (9)</option>
+        <option value="Module 3">Module 3: ADK 2.0, Eval, Harness & FinOps (20)</option>
+      </select>
+
+      <div class="grid" id="question-grid"></div>
+
+      <div class="legend">
+        <div class="legend-item"><div class="legend-box" style="background:#fff;"></div> Unanswered</div>
+        <div class="legend-item"><div class="legend-box" style="background:#e8f0fe; border-color:#aecbfa;"></div> Answered</div>
+        <div class="legend-item"><div class="legend-box" style="border-color:var(--flagged);"></div> Marked for Review (🚩)</div>
+      </div>
+    </div>
+
+    <!-- Active Question View -->
+    <div class="card" id="quiz-card">
+      <div class="q-meta">
+        <span class="q-badge" id="q-module-badge">Module 0</span>
+        <button class="flag-btn" id="q-flag-btn" onclick="toggleFlag()">
+          <span>🚩</span> <span id="flag-text">Mark for Review</span>
+        </button>
+      </div>
+
+      <h3 style="font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 6px;" id="q-id-topic"></h3>
+      <div class="q-text" id="q-text"></div>
+
+      <div class="options" id="options-container"></div>
+
+      <div class="nav-actions">
+        <button class="btn btn-secondary" id="btn-prev" onclick="prevQuestion()">Previous</button>
+        <div style="font-size: 0.9rem; color: var(--text-secondary);" id="q-position-indicator">Question 1 of 54</div>
+        <button class="btn btn-primary" id="btn-next" onclick="nextQuestion()">Next</button>
+      </div>
+    </div>
+
+    <!-- Results View -->
+    <div class="card results-card" id="results-card">
+      <div class="score-summary">
+        <div class="score-big" id="score-percentage">0%</div>
+        <div class="score-status" id="score-status">Score: 0 / 54</div>
+        <p id="score-pass-msg" style="margin-top: 8px; font-weight: 500;"></p>
+        <div style="margin-top: 16px;">
+          <button class="btn btn-primary" onclick="restartExam()">Retake Exam</button>
+          <button class="btn btn-secondary" onclick="filterReview('incorrect')">Show Incorrect Only</button>
+          <button class="btn btn-secondary" onclick="filterReview('all')">Show All Solutions</button>
+        </div>
+      </div>
+
+      <h3 style="margin-bottom: 14px;">Module Breakdown</h3>
+      <div class="module-breakdown" id="module-breakdown"></div>
+
+      <h3 style="margin-bottom: 14px;">Detailed Solution & Explanations</h3>
+      <div id="review-list"></div>
+    </div>
+  </div>
+
+  <script>
+    const examQuestions = [
+      // MODULE 0
+      {
+        id: "[M0-01]",
+        module: "Module 0",
+        topic: "M0L2 • Start with Scoping — WAF Scoping & Business KPI Mapping (Core)",
+        question: "A global retail bank asks you to architect a multi-agent customer support platform to 'transform service quality with Generative AI.' Before selecting foundation models, designing system prompts, or configuring automated evaluation pipelines, what must be established as the foundational step?",
+        options: {
+          A: "Run a standardized side-by-side latency and token-throughput benchmark comparing Gemini 3.7 Flash and Gemini 3.5 Pro using historical anonymized call transcripts stored in BigQuery.",
+          B: "Identify and quantify a concrete business KPI (such as reducing average case resolution time by 30%) and translate it into measurable AI goals with strict operational rubric definitions.",
+          C: "Provision a hybrid vector index in Agent Platform Vector Search over the bank's support runbooks to measure baseline Recall@10 and Mean Reciprocal Rank (MRR) before writing agent.",
+          D: "Configure an automated LLM-as-a-Judge pipeline using Agent Platform Gen AI Evaluation Service with a baseline fluency, politeness, and groundedness prompt template over 500 synthetic queries."
+        },
+        answer: "B",
+        why: "In Elevate (M0L2 & M0L8 'Step 1: Identify and map KPIs'), engineering effort must never optimize AI metrics in a vacuum. You must always follow the 3-step funnel: (1) Identify & map Business KPIs (e.g., reduce MTTR or minimize human rep time after handoff), (2) Translate to AI Goals & Rubrics with strong operational definitions, and (3) Execute evaluation on a Golden Dataset.",
+        trap: "Never start with model benchmarking or vague rubric terms like 'sound professional'—rubrics require strong operational definitions tied to a Business KPI.",
+        theory: "Top-Down Scoping Funnel: 1) Identify and quantify a concrete Business KPI (e.g., reduce MTTR by 30%), 2) Translate it into measurable AI goals and evaluation rubrics with strict operational definitions, and 3) Benchmark against a curated Golden Dataset before iterating on models or prompts."
+      },
+      {
+        id: "[M0-02]",
+        module: "Module 0",
+        topic: "M0L3 • Intro to ADK & AI Design Patterns — When to Use Agents vs Deterministic Workflows (Core)",
+        question: "You are reviewing four enterprise workload proposals during an architecture board review. Which workload represents the strongest architectural fit for an autonomous multi-step ADK agent rather than a deterministic workflow, standard RAG pipeline, or classical ML model?",
+        options: {
+          A: "A high-throughput payment gateway fraud scoring engine that must evaluate 45 transactional features and return a deterministic block/allow decision within a strict 12-millisecond SLA via an asynchronous Cloud Run worker pool.",
+          B: "A regulatory disclosure generator that extracts quarterly financial metrics from fixed BigQuery tables and populates standardized legal boilerplate templates for compliance sign-off inside a managed.",
+          C: "An adaptive factory maintenance coordinator that dynamically diagnoses anomalous sensor telemetry, queries spare-parts inventory APIs, and negotiates technician schedules when recovery steps vary per incident.",
+          D: "An internal HR policy portal that answers single-turn employee benefit questions by retrieving top-k matching sections from version-controlled PDF handbooks with inline citations."
+        },
+        answer: "C",
+        why: "Slide M0L3 ('When are agents a good fit? / You don't always need agents') explicitly contrasts adaptive, multi-tool reasoning tasks (like a flexible factory maintenance schedule or personalized study tool where the next step is NOT known in advance) against fixed workflows where plain LLM prompts, standard RAG, or classical ML classifiers win due to lower latency, lower cost, and higher predictability.",
+        trap: "Adding an agent loop to a fixed workflow introduces unnecessary latency, token cost, and non-determinism.",
+        theory: "Deploy autonomous agents only when multi-step control flow depends dynamically on runtime tool observations. For fixed, predictable workflows, deterministic pipelines, standard RAG, or classical ML classifiers provide superior latency, lower token cost, and strict predictability."
+      },
+      {
+        id: "[M0-03]",
+        module: "Module 0",
+        topic: "M0L3 • Intro to ADK & AI Design Patterns — google-agents-cli Lifecycle (Core)",
+        question: "When standardizing enterprise agent development across engineering teams using google-agents-cli, what is the primary architectural role of this command-line toolchain across the software delivery lifecycle?",
+        options: {
+          A: "It compiles Python agent definitions into static WebAssembly (Wasm) binaries so multi-agent graphs can execute directly inside client browsers without server-side Agent Platform API calls inside a managed execution environment.",
+          B: "It provides an end-to-end lifecycle harness spanning eight stages (Spec -> Scaffold -> Build -> Orchestrate -> Evaluate -> Secure -> Deploy -> Observe) to bootstrap and manage production ADK agents.",
+          C: "It acts as a kernel-level VPC network proxy that intercepts outbound HTTPS calls from third-party LangChain containers and translates them into gRPC requests for Agent Platform endpoints with deterministic schema validation.",
+          D: "It replaces Agent Platform Model Registry by training custom LoRA adapter weights locally on developer workstations whenever a prompt evaluation score drops below the configured threshold."
+        },
+        answer: "B",
+        why: "In M0L3 ('What is google-agents-cli? — Eight stages, one tool: Spec → Scaffold → Build → Orchestrate...'), google-agents-cli is introduced as the unified developer CLI to take an agent from specification and scaffolding all the way to orchestration, evaluation, and deployment.",
+        trap: "Do not confuse google-agents-cli / adk (customer-ready ADK tooling) with jetski (internal Google CE tool).",
+        theory: "google-agents-cli (M0L3 Slide 63) unifies the 8-stage agent engineering lifecycle (Spec -> Scaffold -> Build -> Orchestrate -> Evaluate -> Deploy -> Publish -> Observe) into a single CLI toolchain.",
+        note: "On M0L3 Slide 63, the 8 google-agents-cli stages are Spec -> Scaffold -> Build -> Orchestrate -> Evaluate -> Deploy -> Publish -> Observe (Publish is stage 7, not Secure)."
+      },
+      {
+        id: "[M0-04]",
+        module: "Module 0",
+        topic: "M0L4 • Coding Agent (Antigravity 2.0) — Antigravity Customizations: Rules vs Workflows vs Skills (Core)",
+        question: "When configuring an agentic coding environment for an engineering organization, developers can define Rules, Workflows, and Skills. How should an architect partition responsibilities across these three customization primitives?",
+        options: {
+          A: "Rules (AGENTS.md) enforce always-on global constraints and coding invariants; Workflows (/slash commands) define repeatable user-triggered multi-step procedures; Skills (SKILL.md folders) package domain capabilities loaded dynamically on demand.",
+          B: "Rules (AGENTS.md) store dynamic OAuth 2.0 refresh tokens for external APIs; Workflows (/slash commands) run continuous background cron daemons; Skills (SKILL.md folders) permanently override the foundation model's base safety filters with deterministic schema.",
+          C: "Rules (AGENTS.md) define multi-step interactive prompts triggered via /rule; Workflows (/slash commands) inject permanent system-prompt tokens on every turn; Skills (SKILL.md folders) compile Python tools into container images while enforcing stateless gRPC load.",
+          D: "Rules (AGENTS.md) are loaded lazily only when a file extension matches; Workflows (/slash commands) store static reference documentation for RAG indexing; Skills (SKILL.md folders) enforce mandatory workspace-wide linting on every keystroke via an asynchronous Cloud."
+        },
+        answer: "A",
+        why: "M0L4 (Slides 27–31: Customizations — Rules, Workflows, Skills, 'When to use which') defines the exact hierarchy: Rules enforce persistent workspace constraints; Workflows automate multi-step sequences; Skills package domain instructions (SKILL.md) + helper scripts that the agent discovers and loads progressively only when the task matches.",
+        trap: "Stuffing all specialized instructions into global Rules wastes context budget—use Skills for progressive disclosure.",
+        theory: "Separation of concerns in agentic development: Rules (AGENTS.md) enforce always-on workspace invariants and coding standards; Workflows (/slash commands) define repeatable user-triggered multi-step procedures; Skills (SKILL.md bundles) package modular domain capabilities loaded dynamically on demand.",
+        note: "On M0L3 Slide 53, Level 1 progressive disclosure (name + description frontmatter) is cited at ~60 tokens per skill (and ~100 tokens in go/authoring-agent-skills)."
+      },
+      {
+        id: "[M0-05]",
+        module: "Module 0",
+        topic: "M0L5 • Jetski vs Antigravity — Internal vs Customer Tooling Boundaries (Hard)",
+        question: "A Google Customer Engineer is preparing a live hands-on co-build workshop inside a financial customer's GCP organization while simultaneously automating internal account preparation across Moma, Concord, and internal Google Drive. Which tooling separation strictly complies with security boundaries?",
+        options: {
+          A: "Install the internal corp agent binary (jetski) directly inside the customer's Cloud Workstation VM using a temporary SSH tunnel so internal Moma references can be queried live during the co-build while enforcing stateless gRPC.",
+          B: "Use internal corp agent tooling (go/jetski) exclusively on corp infrastructure for internal research (Moma, Concord, Workspace), and use Antigravity (agy) with Agent Platform inside Argolis or the customer's GCP project for customer builds.",
+          C: "Mount the customer's production BigQuery datasets into the internal corp agent's memory filesystem (/google/data/rw/users/...) using a cross-organization Service Account key exported as JSON via an asynchronous Cloud Run.",
+          D: "Run Antigravity (agy) on the customer's laptop authenticated with the Customer Engineer's @google.com corporate credentials so both internal Drive files and customer Cloud Run services share one token."
+        },
+        answer: "B",
+        why: "M0L5 ('Antigravity vs. JetSki for Customer Engineers') stresses the strict compliance boundary: Jetski is an INTERNAL-ONLY Google tool connected to corp data (Moma, Concord, Buganizer, Drive) to eliminate CE toil. Antigravity 2.0 (agy) is the external/customer-facing IDE & CLI running under GCP Terms of Service.",
+        trap: "Never connect Jetski or corp credentials to a customer tenant, and never demo internal-only corp data to external customers.",
+        theory: "Strict security and compliance boundary: internal corporate agent tooling connected to internal networks (Moma, Concord, internal Drive) must never run inside a customer's GCP tenant; customer co-builds must run in isolated sandboxes (Argolis or the customer's GCP project)."
+      },
+      {
+        id: "[M0-06]",
+        module: "Module 0",
+        topic: "M0L6 • Introduction to Tooling — ADK Tool Calling Execution Boundary (Core)",
+        question: "An ADK agent is configured with a Python function tool def get_hardware_order(employee_id: str) -> dict:. When a user asks 'Where is my replacement laptop?', what is the exact runtime execution sequence across ADK and the Gemini model?",
+        options: {
+          A: "ADK serializes the Python bytecode of get_hardware_order() and uploads it to the Agent Platform Gemini container, which executes the database query inside Google's TPU pod and returns the final natural-language answer via an asynchronous Cloud Run worker pool configured with VPC.",
+          B: "ADK sends the user message and generated JSON schema to Gemini; Gemini returns a structured FunctionCall payload; the local ADK Python process executes get_hardware_order() and sends the FunctionResponse dict back to Gemini to synthesize the answer.",
+          C: "Gemini generates a temporary Python script calling get_hardware_order(), commits it to the local Git repository, triggers a Cloud Build webhook to validate the output, and streams the build logs directly to the end user inside a managed execution.",
+          D: "ADK intercepts the user query before calling Gemini, executes every function registered in the tools=[...] array concurrently using a thread pool, and appends all returned dictionaries into the initial system prompt with deterministic schema."
+        },
+        answer: "B",
+        why: "M0L6 ('How Tool Calling Works') emphasizes the Golden Rule: The LLM NEVER executes your Python code directly. The LLM only sees the JSON schema (derived from function name, docstring, and type hints) and outputs a structured request (function_call). Your ADK Python runtime executes the function and returns the output dictionary to the LLM.",
+        trap: "If a tool fails with a network or DB error, debug the Python runtime environment/IAM credentials—not the LLM weights.",
+        theory: "The foundation model never executes Python functions or network calls directly: it emits a structured FunctionCall JSON intent. The local ADK runtime executes the Python function and returns the FunctionResponse observation to the model."
+      },
+      {
+        id: "[M0-07]",
+        module: "Module 0",
+        topic: "M0L6 • Introduction to Tooling — Why ADK Tools Fail to Trigger (Core)",
+        question: "Your ADK agent initializes without errors and passes tools=[check_warehouse_stock] to LlmAgent(...). However, during testing, whenever a user asks for current stock levels of a SKU, the model fabricates a plausible number and never emits a FunctionCall for check_warehouse_stock. What is the most likely code-level defect?",
+        options: {
+          A: "The function check_warehouse_stock was defined as a synchronous def function instead of async def, causing the ADK event loop to silently strip the tool from the outbound Agent Platform request inside a managed execution environment backed.",
+          B: "The function lacks a clear Python docstring explaining when and how to use it and/or omits explicit parameter type annotations (sku_id: str), preventing ADK from generating a meaningful JSON declaration for the model.",
+          C: "The LlmAgent constructor did not set tool_choice='required', which is mandatory in ADK whenever a custom Python function is registered alongside a system instruction longer than 200 tokens with deterministic schema validation.",
+          D: "The function returns a standard Python dict instead of a serialized google.protobuf.Struct instance, causing the ADK schema compiler to mark the tool as deprecated prior to inference while enforcing stateless."
+        },
+        answer: "B",
+        why: "In ADK (M0L6 Slide 9: 'Binding: from functions to real agent'), ADK introspects the function's name, parameter type hints (item_id: str), and docstring to build the JSON Schema sent to Gemini. The docstring is the LLM's trigger rule telling it WHEN and WHY to call the tool.",
+        trap: "Always write a clear docstring and explicit parameter type hints on every Python tool function.",
+        theory: "The foundation model never executes Python functions or network calls directly: it emits a structured FunctionCall JSON intent. The local ADK runtime executes the Python function and returns the FunctionResponse observation to the model. Tool schema quality depends entirely on explicit Python type hints and docstrings."
+      },
+      {
+        id: "[M0-08]",
+        module: "Module 0",
+        topic: "M0L7 • Intro to Workflows and Multi-agents — Multi-Agent Design Patterns (Sequential, Parallel, Loop, Review & Critique) (Core)",
+        question: "You are architecting a real-time flight disruption assistant that must simultaneously retrieve live rebooking alternatives from an airline GDS API, hotel room availability near the terminal, and local ground weather alerts—three completely independent queries—while minimizing p95 end-to-end latency. Which ADK orchestration primitive should govern these three sub-agents?",
+        options: {
+          A: "Wrap the three specialized sub-agents inside a SequentialAgent configured with output_key pass-through so each lookup enriches the shared state dictionary before the next sub-agent starts with deterministic schema validation.",
+          B: "Orchestrate the three specialized sub-agents under a ParallelAgent to execute all three independent I/O-bound lookups concurrently, followed by a downstream synthesizer agent that merges their state outputs.",
+          C: "Configure a LoopAgent with max_iterations=3 so the runtime iterates through the flight, hotel, and weather sub-agents one per cycle until all three keys appear in session.state while enforcing stateless gRPC load balancing.",
+          D: "Instantiate a single LlmAgent with temperature=0.0 and rely on chain-of-thought prompting to call each sub-agent sequentially one turn at a time via conversational handoffs via an asynchronous Cloud Run worker pool configured."
+        },
+        answer: "B",
+        why: "M0L7 (Slide 11: 'Parallel pattern') shows that when sub-tasks are independent (do not depend on each other's outputs), running them concurrently via ParallelAgent cuts total latency down to the slowest single branch rather than the sum of all three.",
+        trap: "Use SequentialAgent only when Step B strictly requires the output produced by Step A.",
+        theory: "SequentialAgent enforces deterministic linear order; ParallelAgent executes independent sub-agents concurrently to minimize p95 latency; LoopAgent iterates until an exit signal or mandatory max_iterations cap; dynamic routing by a parent LlmAgent inspects each sub-agent's name and description."
+      },
+      {
+        id: "[M0-09]",
+        module: "Module 0",
+        topic: "M0L7 • Intro to Workflows and Multi-agents — Coordinator / Sub-Agent Routing Mechanics (Hard)",
+        question: "In an ADK hierarchical multi-agent system where a parent LlmAgent (root_agent) delegates incoming user requests across sub_agents=[billing_dispute_agent, network_diagnostics_agent, hardware_rma_agent], what exact metadata does the parent orchestrator inspect at runtime to route the turn?",
+        options: {
+          A: "It parses the raw Python abstract syntax tree (AST) and line-of-code complexity of each sub-agent's registered tool functions to calculate a deterministic routing confidence score.",
+          B: "It evaluates each sub-agent's name and description fields—which ADK injects into the parent agent's routing context—to semantically match the user's intent and issue a transfer_to_agent call.",
+          C: "It queries an embedded Agent Platform Vector Search index pre-populated with 100 synthetic sample utterances per sub-agent using cosine similarity prior to invoking the parent LLM.",
+          D: "It inspects the IAM Service Account email attached to each sub-agent's ToolContext and routes the request to whichever sub-agent holds the broadest Cloud IAM role bindings."
+        },
+        answer: "B",
+        why: "Just as an agent reads a Python function's docstring to decide when to call a tool, a parent ADK orchestrator reads each sub-agent's name and description fields to route tasks to the right specialist sub-agent (M0L7).",
+        trap: "If a Coordinator agent fails to route to a sub-agent in Part 2 Troubleshooting Labs, check that the sub-agent's description clearly states its responsibility!",
+        theory: "SequentialAgent enforces deterministic linear order; ParallelAgent executes independent sub-agents concurrently to minimize p95 latency; LoopAgent iterates until an exit signal or mandatory max_iterations cap; dynamic routing by a parent LlmAgent inspects each sub-agent's name and description."
+      },
+      {
+        id: "[M0-10]",
+        module: "Module 0",
+        topic: "M0L7 • Intro to Workflows and Multi-agents — Architecture as a Safety Feature & Loop Patterns (Hard)",
+        question: "You are building a self-correcting BigQuery SQL generation workflow in ADK where a generator agent writes a query, a validator tool executes DRY_RUN, and if a syntax or schema error occurs, the agent refines the query. Which workflow architecture prevents runaway token consumption if a user asks for a column that does not exist?",
+        options: {
+          A: "Use a LoopAgent wrapping the generator and validator steps, paired with both an explicit termination signal (escalate=True when DRY_RUN succeeds) and a hard max_iterations ceiling.",
+          B: "Use a SequentialAgent containing ten duplicated instances of the SQL generator sub-agent so the pipeline naturally terminates after ten consecutive passes regardless of validation status via an asynchronous.",
+          C: "Use a ParallelAgent that spawns eight concurrent SQL generator sub-agents with temperature=1.0 and selects whichever query returns the largest number of rows from BigQuery.",
+          D: "Use a recursive before_model_callback that calls Runner.run_async() inside a Python while True: loop until the model output string contains the keyword SELECT."
+        },
+        answer: "A",
+        why: "M0L7 (Slides 12–14 & 22: 'Loop pattern', 'Iterative refinement pattern', 'Architecture is a safety feature') highlights that LoopAgent (often paired with Review & Critique / Generator-Critic) iterates until quality criteria are met, and MUST include max_iterations as a hard circuit breaker against runaway loops.",
+        trap: "Unbounded loops in agentic workflows are a classic FinOps and reliability failure mode.",
+        theory: "LoopAgent iterates until an exit signal or mandatory max_iterations cap; dynamic routing by a parent LlmAgent inspects each sub-agent's name and description.",
+        note: "On M0L7 Slide 21 (Google Research study), the empirical principles are +81% parallel improvement on decomposable tasks, 39–70% sequential penalty, and 16+ tools as the bottleneck; error amplification is 17.2x (independent) vs 4.4x (centralized coordinator)."
+      },
+      {
+        id: "[M0-11]",
+        module: "Module 0",
+        topic: "M0L8 • Evaluation, Testing & Hillclimbing — Rubric Sensitivity vs Specificity & Hillclimbing (Hard)",
+        question: "When calibrating automated LLM-as-a-Judge rubrics for an enterprise agent evaluation harness (adk eval), quality engineers balance two complementary properties: Sensitivity and Specificity. How are these two properties rigorously defined?",
+        options: {
+          A: "Sensitivity measures how fast the judge model responds in milliseconds; Specificity measures the percentage of JSON schema fields that use strict Pydantic type annotations inside a managed execution environment backed by Cloud KMS encryption keys, OpenTelemetry.",
+          B: "Sensitivity is the rubric's ability to reliably detect subtle defects and negative-constraint violations (penalizing bad outputs); Specificity is its ability to avoid penalizing valid phrasing or creative variations (rewarding good outputs).",
+          C: "Sensitivity is the ratio of input tokens to cached context tokens during evaluation; Specificity is the cosine similarity score between the generated response and the golden reference string with deterministic schema validation, token-level rate limiting, and.",
+          D: "Sensitivity measures whether the agent invokes every tool listed in mcp_config.json; Specificity measures whether the agent restricts its answers to fewer than 100 words per turn while enforcing stateless gRPC load balancing across."
+        },
+        answer: "B",
+        why: "Slide M0L8 ('Step 2: Establish metrics and create rubrics') defines three pillars: (1) Strong operational definitions, (2) Sensitivity (catching subtle failures like ignoring a negative constraint), and (3) Specificity (not penalizing valid variations in natural language).",
+        trap: "Changing a prompt to fix one failed test case without running a Golden Dataset (adk eval) often breaks 5 other cases—this regression risk is why scientific 'Hillclimbing' requires automated evals.",
+        theory: "Rubric Sensitivity measures the evaluator's ability to catch subtle failures and negative-constraint violations (penalizing defective outputs). Rubric Specificity measures its ability to avoid penalizing valid phrasing or creative variations (preventing false-negative grades)."
+      },
+      {
+        id: "[M0-12]",
+        module: "Module 0",
+        topic: "M0L9 • Agent Deployment — Choosing the Right Runtime: Agent Engine vs Cloud Run vs GKE (Core)",
+        question: "A mid-market logistics customer has built an internal ADK shipment-exception assistant. Traffic is bursty (active for 2 hours every weekday morning and 100% idle overnight and on weekends). Their strict FinOps requirement is paying $0 in compute infrastructure cost during idle hours while running container-based ADK code backed by Cloud SQL (DatabaseSessionService). Which runtime target is optimal?",
+        options: {
+          A: "Deploy to a regional Google Kubernetes Engine (GKE) Standard cluster with three persistent n2-standard-8 nodes and local NVMe SSDs so container startup latency is always zero with deterministic schema.",
+          B: "Package the ADK application as a stateless container on Cloud Run connected to DatabaseSessionService, providing managed HTTPS endpoints and true Scale-to-Zero ($0 compute cost when idle).",
+          C: "Deploy the agent on Compute Engine Managed Instance Groups (MIGs) with a minimum instance count of 2 behind an external Application Load Balancer and Cloud Armor policy while enforcing stateless gRPC load.",
+          D: "Provision dedicated Agent Platform Provisioned Throughput (GSUs) on an annual reservation alongside a persistent Agent Platform Workbench notebook instance running adk web via an asynchronous Cloud Run worker pool."
+        },
+        answer: "B",
+        why: "M0L9 (Slides 3, 7, 15: 'The same code runs on three runtimes unchanged' / 'Three targets, one decision') compares the 3 targets: (1) Agent Runtime gives managed SessionService + memory with zero infra work, but has always-on billing; (2) Cloud Run scales to zero ($0 when idle) and gives custom container ownership; (3) GKE gives full cluster/networking/open-model control when you own DevOps.",
+        trap: "Exam reflex: 'Zero infra + built-in managed sessions' → Agent Platform (Agent Engine). 'Scale to zero / $0 overnight idle cost' → Cloud Run. 'Custom GPUs / open models / deep K8s networking' → GKE.",
+        theory: "Cloud Run provides serverless scale-to-zero containers ($0 idle compute; supply your own session service or pass --agent_engine_id). GKE provides full Kubernetes control, custom networking, and open models.",
+        note: "In the official decks (M0L9 Slide 10, M3L1 Slide 10), the managed session service is named VertexAiSessionService."
+      },
+      {
+        id: "[M0-13]",
+        module: "Module 0",
+        topic: "M0L9 • Agent Deployment — The 5 Production Requirements of a Deployed Agent (Core)",
+        question: "An engineering team deploys an ADK conversational agent to Cloud Run with auto-scaling set from 0 to 15 container instances. During load testing, whenever the load balancer routes Turn 2 of a user's conversation to a different container instance—or when an instance scales down and restarts—the agent loses all memory of Turn 1. What is the architectural root cause and fix?",
+        options: {
+          A: "Cloud Run strips HTTP Authorization headers by default on HTTP/2 connections; the fix is to enable WebSockets session affinity with a 24-hour sticky load-balancer cookie while enforcing stateless gRPC load balancing across regional Agent Platform.",
+          B: "The agent was initialized with InMemorySessionService, which stores state only in a single process's RAM; production multi-instance deployments require an externalized SessionService such as AgentPlatformSessionService or DatabaseSessionService.",
+          C: "Gemini models automatically clear their internal KV-cache every 60 seconds unless context_caching=True is passed inside the GenerateContentConfig object on every turn via an asynchronous Cloud Run worker pool configured with VPC.",
+          D: "The container Dockerfile omitted a persistent /tmp/adk_cache volume mount on local container overlayfs storage, which is required to synchronize Python global variables across instances inside a managed execution environment."
+        },
+        answer: "B",
+        why: "M0L9 Slide 5 & 10 ('What a deployed agent actually needs' / 'Where state lives') lists the 5 production requirements: (1) Safe Endpoint, (2) Compute Runtime, (3) Access/Credentials to tools & data, (4) Durable Sessions, and (5) Observability. If you use InMemorySessionService on Cloud Run, container restarts or load-balancing across replicas loses conversation history.",
+        trap: "Never use InMemorySessionService in multi-replica production deployments—use VertexAiSessionService or DatabaseSessionService.",
+        theory: "Externalize session state to DatabaseSessionService or VertexAiSessionService to ensure conversation history survives container scaling, recreation, and multi-instance load balancing.",
+        note: "On M0L9 Slide 5, the 5 production deployment requirements are 1. Runtime, 2. Durable sessions, 3. Access (safe endpoint), 4. Credentials, and 5. Observability."
+      },
+      {
+        id: "[M0-14]",
+        module: "Module 0",
+        topic: "M0L3 • Intro to ADK, RAG & OKF — Open Knowledge Format (OKF) & Portable Agent Knowledge Layer (Hard)",
+        question: "Enterprise Data Agents and BI analytics engines frequently hallucinate SQL joins or miscalculate metrics (such as 'Active Net Revenue') because raw database table schemas lack business context. How does the Open Knowledge Format (OKF) (SPEC.md integrated with Knowledge Catalog) solve this semantic gap?",
+        options: {
+          A: "It provides a structured, portable, version-controlled semantic layer—combining table/column metadata, canonical business glossary definitions, join relationships, and verified Golden SQL examples—so any agent or query engine interprets enterprise data consistently without vendor lock-in.",
+          B: "It encrypts all BigQuery column names into base64 hashes so unauthorized LLMs cannot guess the business meaning of tables during text-to-SQL generation with deterministic schema validation, token-level rate limiting, and per-tenant IAM role bindings enforced at the service boundary while enforcing stateless.",
+          C: "It is a proprietary binary compression codec that replaces Apache Parquet and Iceberg storage formats inside Cloud Storage data lakes while enforcing stateless gRPC load balancing across regional Agent Platform endpoints and auditing IAM policy bindings in Cloud Logging via an asynchronous Cloud Run worker pool.",
+          D: "It forces all enterprise business analysts to write queries in assembly language instead of natural language when interacting with BigQuery Conversational Analytics via an asynchronous Cloud Run worker pool configured with VPC Service Controls, Workload Identity Federation, and JSON schema validation inside a."
+        },
+        answer: "A",
+        why: "M0L3 ('ADK skills, RAG & OKF') and the official Elevate Notes highlight OKF (Open Knowledge Format) as a portable knowledge layer (SPEC.md) that packages domain semantics, glossary definitions, and golden patterns in a structured format so data agents and coding agents share a consistent understanding of enterprise data.",
+        trap: "Don't confuse raw unstructured Markdown notes with OKF: OKF enforces a portable specification (SPEC.md) linking data schemas to business context.",
+        theory: "Open Knowledge Format (OKF, M0L3 Slides 32–34) stores enterprise domain knowledge as version-controlled Markdown concept files in Git (one file = one concept; file path = identity; YAML frontmatter + body split for progressive disclosure).",
+        note: "On M0L3 Slide 34, the 4 OKF principles are: (1) A bundle is a directory of concepts, (2) One file is one concept and its path is its identity, (3) Concept type is free-form, and (4) The frontmatter/body split encodes a cost model for attention."
+      },
+      {
+        id: "[M0-15]",
+        module: "Module 0",
+        topic: "M0L7 • Intro to Workflows and Multi-agents — Coordinator vs Hierarchical Task Decomposition vs Swarm Patterns (Hard)",
+        question: "When selecting a multi-agent orchestration topology for complex workflows, architects compare the Coordinator / Hierarchical Pattern against the Swarm Pattern. What is the structural difference in how control flow and task handoffs operate between these two topologies?",
+        options: {
+          A: "In a Coordinator / Hierarchical topology, a central parent orchestrator (or tree of manager agents) maintains top-down control of routing and task decomposition; in a Swarm topology, decentralized peer agents dynamically hand off active control laterally to one another based on specialized capabilities and evolving task state without a single central bottleneck.",
+          B: "In a Coordinator topology, all sub-agents run on local developer laptops over stdio; in a Swarm topology, all agents must be compiled into C++ kernel modules while enforcing stateless gRPC load balancing across regional Agent Platform endpoints and auditing IAM policy bindings in Cloud Logging via an asynchronous Cloud Run worker pool configured with VPC.",
+          C: "In a Coordinator topology, agents cannot use function calling or MCP tools; in a Swarm topology, every agent is restricted to a maximum of 10 output tokens per turn via an asynchronous Cloud Run worker pool configured with VPC Service Controls, Workload Identity Federation, and JSON schema validation inside a managed execution environment backed by.",
+          D: "A Coordinator topology executes all sub-agents in random order using a Monte Carlo generator, whereas a Swarm topology enforces a strictly hard-coded linear sequence identical to SequentialAgent inside a managed execution environment backed by Cloud KMS encryption keys, OpenTelemetry span exporters, and automated CI/CD gates."
+        },
+        answer: "A",
+        why: "M0L7 Slides 16–18 explicitly contrast: (1) Coordinator pattern (1 central router dispatching to specialist sub-agents), (2) Hierarchical task decomposition (multi-level tree where high-level planners break complex goals into sub-goals), and (3) Swarm pattern (decentralized peer-to-peer handoffs between specialized agents).",
+        trap: "Use Coordinator/Hierarchical when strict central auditability and predictable control flow are required; Swarm is suited for emergent, decentralized peer handoffs.",
+        theory: "Coordinator topologies maintain central top-down routing and deterministic handoffs; Swarm topologies use peer-to-peer agent transitions without a centralized orchestrator."
+      },
+      {
+        id: "[M0-16]",
+        module: "Module 0",
+        topic: "M0L9 • Agent Deployment & Runtime Substrates — Serverless Agent Runtime vs Agent Runtime on GKE (Hard)",
+        question: "Gemini Enterprise Agent Platform supports two primary container runtime substrates: Serverless Agent Runtime (built on Cloud Run substrate) and Agent Runtime on GKE. Which specific technical or operational requirement mandates choosing Agent Runtime on GKE over the Serverless Cloud Run substrate?",
+        options: {
+          A: "Requiring standard HTTPS TLS termination, automatic horizontal scaling from zero instances, or native integration with Agent Platform Gemini API endpoints via an asynchronous Cloud Run worker pool configured with VPC Service Controls, Workload Identity Federation, and JSON schema validation inside a managed execution.",
+          B: "Requiring continuous execution duration exceeding the 7-day ceiling of the Cloud Run substrate, attaching persistent block storage (Persistent Disk / Hyperdisk), running privileged DaemonSet security sidecars, or serving self-hosted open-weight models on dedicated GPU/TPU node pools.",
+          C: "Writing the agent in Python 3.12 using the google-adk SDK with AgentPlatformSessionService and exporting traces to Cloud Trace via OpenTelemetry inside a managed execution environment backed by Cloud KMS encryption keys, OpenTelemetry span exporters, and automated CI/CD gates.",
+          D: "Connecting the agent to an external SaaS API (such as Salesforce or ServiceNow) using OAuth 2.0 3LO credentials stored in Secret Manager with deterministic schema validation, token-level rate limiting, and per-tenant IAM role bindings enforced at the service boundary."
+        },
+        answer: "B",
+        why: "While Serverless Agent Runtime offers <1s startup and supports long-running sessions up to a 7-day execution cap, Agent Runtime on GKE removes the 7-day duration cap, supports block storage mounts, custom K8s DaemonSets/security sidecars, and custom GPU/TPU node pools for open models.",
+        trap: "Remember: Same ADK code runs on both! Choose GKE when you need >7-day uninterrupted execution, block storage mounts, custom sidecars, or self-hosted open models.",
+        theory: "Cloud Run provides serverless scale-to-zero containers ($0 idle compute). GKE provides full Kubernetes control, custom networking, persistent block storage, and open models.",
+        note: "On M0L9 Slides 6–7 & 15, GKE is selected for full control, custom networking, and self-hosted open models (when 'you are the DevOps team')."
+      },
+
+      // MODULE 1
+      {
+        id: "[M1-01]",
+        module: "Module 1",
+        topic: "M1L1 • Skills Framework — The 4 Skill Patterns (Informational, Generator, Reviewer, Workflow) (Core)",
+        question: "Modular agent capabilities (SKILL.md bundles) are classified into structural archetypes: Informational, Generator, Reviewer, and Workflow. What is the precise architectural distinction between a Generator Skill and a Reviewer Skill?",
+        options: {
+          A: "A Generator Skill produces structured artifacts (such as Terraform modules or ADK boilerplate) from domain templates and schemas; a Reviewer Skill audits existing code or configurations against a compliance rubric and outputs structured findings.",
+          B: "A Generator Skill executes read-only SQL queries against BigQuery data warehouses; a Reviewer Skill provisions new Google Cloud projects and attaches billing accounts via Terraform via an asynchronous Cloud Run worker pool configured with VPC Service Controls.",
+          C: "A Generator Skill is restricted to natural-language summarization of PDF documents; a Reviewer Skill compiles Python source files into Docker container images for Cloud Run inside a managed execution environment backed by Cloud KMS.",
+          D: "A Generator Skill runs exclusively inside after_model_callback hooks at runtime; a Reviewer Skill is an always-on background daemon that rotates OAuth 2.0 client secrets every 24 hours with deterministic schema validation."
+        },
+        answer: "A",
+        why: "M1L1 (Slides 7–16: 'Skill Patterns') defines the canonical patterns: Informational supplies domain knowledge; Generator scaffolds code/configs following strict templates; Reviewer evaluates code/architecture against checklists/policies; Workflow orchestrates multi-step tool executions.",
+        trap: "Recognize which of the Skill Patterns fits a given customer scenario on the Knowledge Check.",
+        theory: "The canonical Skill Patterns: 1) Informational, 2) Tool Wrapper, 3) Generator, 4) Reviewer, and 5) Workflow.",
+        note: "On M1L1 Slide 7, there are 5 canonical Skill Patterns: Informational, Tool Wrapper, Generator, Reviewer, and Workflow."
+      },
+      {
+        id: "[M1-02]",
+        module: "Module 1",
+        topic: "M1L2 • Context Engineering — Prompt Engineering vs Context Engineering & Progressive Disclosure (Core)",
+        question: "Even though Gemini 3.x foundation models support a 1M to 2M token context window, why is stuffing entire documentation repositories and all enterprise tool schemas directly into the static system prompt considered a critical anti-pattern in production context engineering?",
+        options: {
+          A: "Agent Platform automatically rejects any GenerateContent API request whose system instruction exceeds 32,768 tokens with an HTTP 413 Payload Too Large protocol error inside a managed execution environment backed by Cloud KMS encryption keys, OpenTelemetry span exporters, and automated CI/CD gates with deterministic.",
+          B: "Flooding the context window with irrelevant tokens causes 'attention dilution' (degrading reasoning precision and instruction-following accuracy) while multiplying per-turn TTFT latency and token cost; Progressive Disclosure (AGENTS.md + on-demand SKILL.md) preserves high signal-to-noise ratio.",
+          C: "Passing more than 100,000 input tokens automatically disables deterministic function calling (FunctionCall) and forces the model into plain-text completion mode without JSON schema validation with deterministic schema validation, token-level rate limiting, and per-tenant IAM role bindings enforced at the service boundary.",
+          D: "Large system prompts overwrite the model's internal safety alignment weights in TPU memory, causing Model Armor to block 100% of subsequent user turns as potential jailbreak attempts while enforcing stateless gRPC load balancing across regional Agent Platform endpoints and auditing IAM policy."
+        },
+        answer: "B",
+        why: "M1L2 (Slides 5–15: 'The model is not the variable you control. The context is.') explains that while 1M–2M windows remove hard capacity walls, the bottleneck shifted to signal-to-noise ratio ('what deserves the space'). Using AGENTS.md + SKILL.md preserves the free working budget of the context window.",
+        trap: "Anti-pattern: Dumping every possible tool schema and reference doc into the persistent system prompt instead of loading them dynamically.",
+        theory: "Even with 1M–2M token context windows, dumping whole repos causes the Context Tax (high cost/latency + noise), while tangential discussion causes Context Rot, summarization causes Context Collapse, and raw tool outputs cause Observation Flooding.",
+        note: "In M1L2 Slides 3 & 13, the named failure modes are Context Tax, Amnesia Loop, Context Rot, PR Slop, Architectural Drift, Context Collapse, and Observation Flooding."
+      },
+      {
+        id: "[M1-03]",
+        module: "Module 1",
+        topic: "M1L2 • Context Engineering — The 4 Components of the Context Window Budget (Core)",
+        question: "When designing a deterministic context window budget for a multi-turn enterprise agent, which four competing token segments must be actively managed and balanced on every single inference turn?",
+        options: {
+          A: "1) VPC Firewall Logs, 2) Cloud KMS Encryption Headers, 3) OAuth 2.0 JWT Signatures, and 4) Container Image Layer Metadata with deterministic schema validation, token-level rate limiting, and per-tenant IAM role bindings enforced at the service boundary while enforcing.",
+          B: "1) System Prompt (core rules & persona), 2) Tools & Retrieved Context (MCP schemas, active skills, RAG chunks), 3) Conversation History (multi-turn event log), and 4) Free / Working Budget (for model chain-of-thought reasoning & output generation).",
+          C: "1) LoRA Adapter Weights, 2) Tokenizer Vocabulary Table, 3) GPU VRAM Swap Buffer, and 4) HTTP/2 gRPC Framing Overhead while enforcing stateless gRPC load balancing across regional Agent Platform endpoints and auditing IAM policy bindings in Cloud Logging via an asynchronous.",
+          D: "1) BigQuery Slot Reservations, 2) Agent Platform Vector Search Shard Replicas, 3) Cloud Run Cold-Start Init Traces, and 4) OpenTelemetry Span Exporters via an asynchronous Cloud Run worker pool configured with VPC Service Controls, Workload Identity Federation, and JSON."
+        },
+        answer: "B",
+        why: "M1L2 Slide 6 explicitly diagrams the Context Window bar split into 4 segments: System prompt + Tools & retrieved context + Conversation history + Free / working budget.",
+        trap: "Using sub-agents (M1L2 Slide 15) isolates intermediate tool outputs in a separate sub-agent context window so only the distilled result returns to the parent orchestrator!",
+        theory: "Every turn must balance 4 competing budget segments: 1) System Prompt, 2) Tools & Retrieved Context, 3) Conversation History, and 4) Free Budget."
+      },
+      {
+        id: "[M1-04]",
+        module: "Module 1",
+        topic: "M1L3 • App Modernization — Why Agentic AI Requires Legacy App Modernization (Core)",
+        question: "An insurance enterprise wants to deploy autonomous claims-processing agents, but 80% of their policy underwriting and claims adjudication logic resides inside a monolithic legacy .NET / Mainframe system with terminal-screen workflows and nightly batch files. Why must legacy application modernization be paired with their agentic initiative?",
+        options: {
+          A: "Because Gemini models cannot parse ASCII or EBCDIC characters unless the legacy source code is first transpiled into Rust and compiled for ARM64 Cloud Run containers while enforcing stateless gRPC load balancing across.",
+          B: "Because agents are only as effective as the actions and data they can safely invoke; locking core business logic inside brittle monoliths without clean APIs, MCP contracts, RBAC, and idempotency blocks reliable autonomous execution.",
+          C: "Because Google Cloud Terms of Service prohibit connecting Agent Platform (Agent Engine) to any on-premises or hybrid database over Cloud Interconnect or Shared VPC via an asynchronous Cloud Run worker pool configured with VPC.",
+          D: "Because legacy databases cannot store timestamps in UTC format, which causes the ADK InMemorySessionService clock synchronization check to fail during multi-turn conversations inside a managed execution."
+        },
+        answer: "B",
+        why: "M1L3 (Slides 2–19) explains that an agentic front-end is powerless if enterprise systems of record remain trapped in siloed Mainframe or legacy Windows/.NET monoliths. Using AI-powered Code Modernization unlocks legacy logic and exposes governed APIs/MCP servers that agents can invoke.",
+        trap: "Modernization is both USE of AI (using Gemini/Antigravity to translate legacy .NET/COBOL) and FOR AI (unlocking APIs/MCP tools for agents).",
+        theory: "Enterprise agents are only as capable as the systems they can safely invoke. Modernizing brittle legacy monoliths by exposing clean APIs, MCP server contracts, RBAC, and idempotency is an architectural prerequisite.",
+        note: "In M1L3 Slides 6–12, legacy modernization covers Mainframe, .NET, and Databases."
+      },
+      {
+        id: "[M1-05]",
+        module: "Module 1",
+        topic: "M1L4 • Advanced Tooling (MCP) — Model Context Protocol (MCP) Architecture & Value Proposition (Core)",
+        question: "As an enterprise scales from 3 pilot agents to 40 specialized agents interacting with 25 internal databases, SaaS platforms, and ticketing systems, what fundamental architectural bottleneck does the Model Context Protocol (MCP) eliminate?",
+        options: {
+          A: "It eliminates the N×M custom integration matrix by establishing an open, standardized client-server protocol (MCP Host/Client <-> MCP Server) so any compliant agent can dynamically discover and invoke tools, resources, and prompts without bespoke per-agent connector code.",
+          B: "It eliminates the need for foundation model inference by compiling natural-language user prompts directly into deterministic SQL stored procedures inside AlloyDB and Cloud Spanner via an asynchronous Cloud Run worker pool configured with VPC Service Controls, Workload Identity Federation, and.",
+          C: "It replaces OAuth 2.0 and Cloud IAM by embedding static root database credentials directly inside the agent's public SKILL.md markdown frontmatter for zero-latency authentication inside a managed execution environment backed by Cloud KMS encryption keys.",
+          D: "It compresses multi-megabyte video and audio streams into 64-byte hash digests so multimodal agents never consume input tokens when analyzing customer call recordings with deterministic schema validation, token-level rate limiting, and per-tenant IAM role."
+        },
+        answer: "A",
+        why: "M1L4 (Slides 7–25) shows how MCP standardizes the interface between an Agent Runtime (MCP Client) and backend systems (MCP Servers), turning fragmented N×M integrations into reusable building blocks.",
+        trap: "Combine native ADK Python functions for lightweight agent-specific logic with MCP Servers for shared enterprise data/platform capabilities.",
+        theory: "Model Context Protocol (MCP) eliminates the N×M integration matrix by standardizing communication between MCP Host/Client and MCP Server (Tools, Resources, Prompts)."
+      },
+      {
+        id: "[M1-06]",
+        module: "Module 1",
+        topic: "M1L5 • AWS to GCP Migration — The 4-Phase Google Cloud Migration Framework & Service Mapping (Core)",
+        question: "A customer is migrating a production multi-agent workload from AWS (Amazon Bedrock Agents, AWS Lambda action groups, and Amazon DynamoDB session tables) to Google Cloud. What are the four canonical phases of the Google Cloud Migration Framework used to structure this transition?",
+        options: {
+          A: "1) Containerize (Docker build), 2) Re-index (Pinecone to FAISS), 3) Fine-Tune (SFT on TPU v5e), and 4) Decommission (Delete AWS IAM accounts) inside a managed execution environment backed by Cloud KMS encryption keys, OpenTelemetry span exporters, and automated CI/CD gates.",
+          B: "1) Assess (discovery, workload inventory & dependency mapping), 2) Plan (cloud foundation, identity/VPC-SC landing zone & service mapping), 3) Deploy (iterative migration & automated eval verification), and 4) Optimize (FinOps, caching & model routing).",
+          C: "1) Scrape (export CloudWatch logs), 2) Translate (Boto3 to gRPC), 3) Overprovision (reserve 100 GSUs), and 4) Freeze (lock all prompts in read-only GCS buckets) with deterministic schema validation, token-level rate limiting, and per-tenant IAM role bindings enforced at the.",
+          D: "1) Sandbox (deploy in personal Gmail account), 2) Bypass (disable VPC Service Controls), 3) Cutover (DNS switch at peak traffic), and 4) Audit (retroactive security review after 90 days) while enforcing stateless gRPC load balancing across."
+        },
+        answer: "B",
+        why: "M1L5 (Slides 3–18: 'The Migration Framework') defines the 4 phases: Assess -> Plan & Build -> Migrate -> Optimize, mapping AWS Lambda to Cloud Run (highlighting concurrency per container instance vs Lambda's 1-request-per-execution model).",
+        trap: "Memorize the Lambda → Cloud Run key difference: Cloud Run handles multiple concurrent requests per container instance (up to 1000), reducing cold starts and cost for I/O-bound AI workloads!",
+        theory: "The Google Cloud Migration Framework follows 4 sequential phases: 1. Assess -> 2. Plan & Build -> 3. Migrate -> 4. Optimize. AWS Lambda maps to Cloud Run (container-based, up to 60-minute timeout vs Lambda's 15-minute limit).",
+        note: "On M1L5 Slide 3, the 4-Phase Framework is 1. Assess -> 2. Plan & Build -> 3. Migrate -> 4. Optimize."
+      },
+      {
+        id: "[M1-07]",
+        module: "Module 1",
+        topic: "M1L6 • Identity & IT Environments with Gemini Enterprise — Federated Connectors vs Data Ingestion & ACL Syncing (Hard)",
+        question: "A pharmaceutical company connects an enterprise search and agent platform to SharePoint, Jira, and Google Drive containing highly confidential R&D clinical trial folders. How must document grounding be architected so that when Researcher A queries the agent, the agent never synthesizes answers using files only Researcher B is permitted to view?",
+        options: {
+          A: "Ingest all SharePoint, Jira, and Drive documents into a single public Cloud Storage bucket using a privileged Service Account and instruct the agent in its system prompt: 'Never reveal confidential R&D information to unauthorized users.' with deterministic schema validation.",
+          B: "Use identity-aware grounding via Federated Connectors or ACL-synced Agent Platform Search data stores paired with end-user identity propagation (OAuth 2.0 / Workforce Identity Federation), enforcing source ACL filtering at query time before chunks reach the LLM.",
+          C: "Enable after_model_callback regex scrubbing to delete any proper nouns or project code names from the model's response after the LLM has already read all confidential clinical trial documents in its context window while enforcing stateless gRPC load balancing across regional.",
+          D: "Create a separate fine-tuned Gemini model checkpoint for every individual employee in the company so each employee's access permissions are permanently baked into their dedicated model weights via an asynchronous Cloud Run worker pool configured with VPC Service Controls."
+        },
+        answer: "B",
+        why: "M1L6 (Slide 16: 'Cloud Identity with Microsoft Federated Connectors') highlights this: with Federated Connectors, data stays in the source SaaS system, the user signs in via OAuth to the 3P provider, and queries execute in real time using the user's native identity—requiring ZERO ACL mapping or ACL syncing into Google Cloud!",
+        trap: "Whenever a question asks how to avoid ACL synchronization lag or data duplication across 3P SaaS sources in Gemini Enterprise, the answer is always Federated Connectors.",
+        theory: "Gemini Enterprise recommends Google/Cloud Identity + Federated Connectors, which use End User Authorization (delegated permissions via a second sign-in) so no ACL mapping or syncing is required."
+      },
+      {
+        id: "[M1-08]",
+        module: "Module 1",
+        topic: "M1L7 • AI Developer Tools Landscape — The Enterprise Adoption Blocker: Governance & Trust (Core)",
+        question: "Across enterprise CXO surveys and production rollouts, while developer prototyping of AI agents has exploded, over 80% of initial agent prototypes stall before reaching mission-critical production. What is the primary structural blocker preventing enterprise production sign-off?",
+        options: {
+          A: "A lack of open-source Python packages capable of parsing JSON responses returned by foundation model REST APIs while enforcing stateless gRPC load balancing across regional Agent Platform endpoints and auditing IAM.",
+          B: "A deficit in enterprise-grade Governance, Security, and Trust—specifically lacking centralized inventory visibility, deterministic action guardrails, user-scoped identity propagation, and verifiable evaluation harnesses.",
+          C: "Insufficient context window capacity in modern frontier models to fit a standard 5-page corporate policy document via an asynchronous Cloud Run worker pool configured with VPC Service Controls, Workload.",
+          D: "Hardware incompatibility between standard x86_64 Linux container runtimes on Cloud Run and Python 3.12 asynchronous event loops inside a managed execution environment backed by Cloud KMS encryption."
+        },
+        answer: "B",
+        why: "M1L7 (Slides 3–10) shows that while developer adoption of AI coding tools is universal, enterprise production rollout hits a hard wall on Trust & Governance—specifically identity, data leakage, unverified code mutations, and shadow MCP servers.",
+        trap: "Google's differentiation with Antigravity + GEAP is 'One harness across four surfaces (IDE, CLI, SDK, Agent Manager)' backed by GCP enterprise IAM, Model Armor, and Agent Registry.",
+        theory: "The #1 blocker preventing enterprise agent prototypes from reaching production is the enterprise Governance & Trust gap.",
+        note: "On M1L7 Slide 3, survey numbers: 84% use/plan AI, 90% use AI at work, 29% trust accuracy, 66% cite 'almost right, but not quite'."
+      },
+      {
+        id: "[M1-09]",
+        module: "Module 1",
+        topic: "M1L4 • Advanced Tooling (MCP Config & Transport) — Wiring MCP Servers in Skills & mcp_config.json (stdio vs SSE/HTTP) (Core)",
+        question: "When wiring MCP servers into an agent's configuration (mcp_config.json), you need to integrate both (1) a local command-line analytics binary launched as a subprocess on the same machine and (2) a shared multi-tenant enterprise MCP server deployed remotely on Cloud Run. Which transport protocol pair matches these two deployment modes?",
+        options: {
+          A: "The local child-process binary uses --transport stdio (communicating over standard input/output streams), whereas the remote Cloud Run service uses HTTP-based streaming (Streamable HTTP / SSE) secured with IAM or OAuth bearer tokens.",
+          B: "The local child-process binary uses UDP multicast over port 53, whereas the remote Cloud Run service uses raw unencrypted Telnet sockets over port 23 inside a managed execution environment backed by Cloud KMS encryption keys, OpenTelemetry span exporters.",
+          C: "Both the local subprocess binary and the remote Cloud Run service must exclusively use --transport stdio shared over an NFSv3 network file lock with deterministic schema validation, token-level rate limiting, and per-tenant IAM role bindings enforced at the.",
+          D: "The local binary uses SMTP email polling every 5 minutes, whereas the remote Cloud Run service requires a dedicated hardware Fibre Channel SAN fabric while enforcing stateless gRPC load balancing across regional Agent Platform endpoints."
+        },
+        answer: "A",
+        why: "M1L4 shows that local MCP server binaries are invoked as child processes using '--transport stdio', while remote Google Cloud / Cloud Run MCP servers communicate over HTTPS (Streamable HTTP / SSE) secured by GCP IAM / OAuth.",
+        trap: "When a remote Cloud Run MCP server returns 401/403 in a lab, check that the calling Agent Principal has roles/run.invoker and the MCP IAM policy binding!",
+        theory: "Local subprocess binaries use --transport stdio; remote cloud deployments use Streamable HTTP / SSE with IAM or OAuth bearer tokens."
+      },
+
+      // MODULE 2
+      {
+        id: "[M2-01]",
+        module: "Module 2",
+        topic: "M2S1 • Foundations of AI Threat Defense — How AI Scales Offensive Attacks (Core)",
+        question: "In modern AI threat intelligence analyses, autonomous offensive AI agents have fundamentally altered the enterprise vulnerability landscape. Which set of empirical metrics characterizes how offensive AI scales cyber attacks compared to traditional manual exploitation?",
+        options: {
+          A: "A 2x increase in phishing email length, 15% coverage of legacy Windows XP vulnerabilities, and a requirement for 4 human operators per automated reconnaissance thread via an asynchronous Cloud Run.",
+          B: "Approximately 10x faster attack surface reconnaissance, ~85% automated exploitation coverage across newly disclosed CVEs, and near-zero (~0) human oversight required per campaign.",
+          C: "A 50% reduction in network packet size, 100% immunity to TLS 1.3 encryption, and mandatory execution on quantum computing hardware inside a managed execution environment.",
+          D: "A 100x increase in DNS propagation delay, 10% coverage of SQL injection flaws, and manual human approval required for every individual HTTP packet with deterministic."
+        },
+        answer: "B",
+        why: "M2S1 (Slides 16–22: 'How AI Scales Attacks: By the Numbers') cites the three key offensive metrics: 10x Faster Recon, 85% CVE Coverage (LLMs generating PoC exploits from descriptions), and ~0 Human Oversight.",
+        trap: "Complex Exploit Chains: standard scanners ignore low-severity bugs in isolation, whereas AI attackers chain them together into a critical breach.",
+        theory: "Offensive AI accelerates attack surface reconnaissance by ~10x and achieves ~85% automated exploitation coverage across disclosed CVEs with near-zero (~0) human oversight."
+      },
+      {
+        id: "[M2-02]",
+        module: "Module 2",
+        topic: "M2S1 • Foundations of AI Threat Defense — Shift-Left vs Shift-Right & Auto-Remediation Confidence Thresholds (Core)",
+        question: "When designing an AI-powered SecOps and vulnerability auto-remediation pipeline (combining Shift-Left pre-commit scanning with Shift-Right runtime defense), how should an architect govern automated code patch deployment in production?",
+        options: {
+          A: "Automatically merge and deploy 100% of LLM-generated security patches directly to the main production branch without running regression tests so mean-time-to-remediate (MTTR) reaches zero seconds inside a managed execution environment backed by Cloud KMS encryption keys, OpenTelemetry span exporters, and.",
+          B: "Enforce a confidence-threshold gate: automatically apply and verify patches only when the remediation confidence score exceeds a strict threshold (e.g., >= 0.85) AND all automated test suites pass; escalate lower-confidence or high-blast-radius findings to Human-in-the-Loop (HITL) review.",
+          C: "Disable all automated code patching in CI/CD and rely exclusively on quarterly manual penetration testing reports reviewed by an external audit firm with deterministic schema validation, token-level rate limiting, and per-tenant IAM role bindings enforced at the service boundary while enforcing stateless gRPC.",
+          D: "Configure the remediation agent to delete any microservice source file that triggers a static analysis warning so the vulnerability is immediately eliminated from the container build while enforcing stateless gRPC load balancing across regional Agent Platform endpoints and auditing IAM."
+        },
+        answer: "B",
+        why: "M2S1 states: 'Auto-remediation does not mean blind automation — it means AI-proposed actions with configurable confidence thresholds, giving security teams complete control over autonomy levels in production environments.'",
+        trap: "Exam definition trap: Auto-remediation = AI-proposed patches + configurable confidence thresholds + automated test verification (Red → Green TDD).",
+        theory: "Defense requires Shift-Left Secure Agentic TDD and Shift-Right confidence-threshold gating with Human-in-the-Loop escalation."
+      },
+      {
+        id: "[M2-03]",
+        module: "Module 2",
+        topic: "M2S1 • Secure Agentic Coding & CodeMender Labs — Secure Agentic TDD & CodeMender Remediation Workflow (Hard)",
+        question: "You are using an autonomous security remediation agent (such as CodeMender) to fix an injection vulnerability discovered in an enterprise microservice. What is the mandatory Secure Agentic Test-Driven Development (TDD) loop required to guarantee the fix is both effective and non-breaking?",
+        options: {
+          A: "1) Rewrite the microservice in a different language, 2) Delete the legacy unit test suite, 3) Deploy directly to production canary, and 4) Monitor Cloud Logging for 500 errors with deterministic schema validation, token-level rate limiting, and per-tenant IAM role bindings enforced at the.",
+          B: "1) Write a deterministic failing exploit/reproduction test that triggers the vulnerability, 2) Generate the minimal targeted code patch, 3) Verify the exploit test now passes AND all existing functional regression tests pass, and 4) Emit the signed verification artifact.",
+          C: "1) Increase the LLM temperature to 0.9 to generate five diverse code patches, 2) Concatenate all five patches into the handler, 3) Run git push --force, and 4) Close the Jira security ticket while enforcing stateless gRPC load balancing across regional Agent Platform endpoints and auditing IAM.",
+          D: "1) Add a system prompt instruction telling users not to send malicious payloads, 2) Export the prompt to a markdown file, 3) Bypass the CI test runner using --no-verify, and 4) Redeploy via an asynchronous Cloud Run worker pool configured with VPC Service Controls, Workload Identity."
+        },
+        answer: "B",
+        why: "In M2L1 & M2L2, Secure Agentic TDD follows Red → Patch → Green (prove the exploit fails after patching). In CodeMender, remediating CRITICAL findings individually by ID, verifying 'status': 'FIXED' in the exported report JSON, and uploading to the validation bucket ensures success.",
+        trap: "Check that the remediation JSON shows status: FIXED and is uploaded to the required GCS validation bucket!",
+        theory: "Defense requires Shift-Left Secure Agentic TDD (reproduction test → minimal patch → regression suite) and Shift-Right confidence-threshold gating with Human-in-the-Loop escalation.",
+        note: "In Qwiklabs CEPF136, commands include cm init --verify, cm find, cm status, cm fix <id>, cm build --force, and cm report --format json > report.json."
+      },
+      {
+        id: "[M2-04]",
+        module: "Module 2",
+        topic: "M2S2 • Agent Governance — Indirect Prompt Injection vs Tool Poisoning (Hard)",
+        question: "Security architects distinguish between two critical agent-specific threat vectors: Indirect Prompt Injection (IPI) and Tool Poisoning. What is the exact technical difference between these two attack mechanisms?",
+        options: {
+          A: "Indirect Prompt Injection occurs when a user types a jailbreak directly into the chat input box; Tool Poisoning occurs when a Cloud SQL instance runs out of disk storage during a transaction while enforcing stateless gRPC load balancing across regional Agent Platform endpoints and auditing IAM policy.",
+          B: "Indirect Prompt Injection hides adversarial instructions inside external data retrieved at runtime (e.g., an untrusted email, web page, or RAG document); Tool Poisoning compromises the tool definition/metadata or MCP server schema itself so the agent is manipulated during tool discovery or invocation.",
+          C: "Indirect Prompt Injection only affects open-weight models running on local GPUs; Tool Poisoning only affects REST APIs that use XML payloads instead of JSON schemas via an asynchronous Cloud Run worker pool configured with VPC Service Controls, Workload Identity Federation, and JSON schema validation.",
+          D: "Indirect Prompt Injection is a network-layer DDoS attack against port 443; Tool Poisoning is a hardware side-channel attack targeting TPU high-bandwidth memory (HBM) inside a managed execution environment backed by Cloud KMS encryption keys, OpenTelemetry span exporters, and automated CI/CD gates."
+        },
+        answer: "B",
+        why: "M2S2 ('Agents can amplify risks across the AI stack') distinguishes the two: Indirect Prompt Injection rides inside untrusted data ingested during RAG/search/email reading, whereas Tool Poisoning targets the MCP/tool layer itself (malicious tool metadata/descriptions or poisoned MCP servers).",
+        trap: "Mitigate Indirect Prompt Injection with Model Armor (inspecting prompts & retrieved tool/RAG outputs) and deterministic ADK Callbacks (before_tool_callback).",
+        theory: "The 3 Pillars of Agent Governance: Visibility, Control, and Security."
+      },
+      {
+        id: "[M2-05]",
+        module: "Module 2",
+        topic: "M2S2 • Agent Governance — The 3 Governance Pillars: Visibility, Control, Security (Core)",
+        question: "To eliminate 'Shadow AI' (ungoverned agents spun up across business units without security oversight), an enterprise CISO asks you to structure an Agent Governance framework on Google Cloud. What are the three foundational pillars of enterprise Agent Governance and their corresponding technical controls?",
+        options: {
+          A: "1) Visibility (centralized discovery & inventory via Agent Registry), 2) Control (least-privilege access, Agent Identity & IAM/3LO OAuth boundaries), and 3) Security (runtime threat defense via Model Armor + deterministic ADK Callbacks).",
+          B: "1) Compression (INT4 quantization of model weights), 2) Replication (multi-region GCS bucket mirroring), and 3) Monetization (internal chargeback billing tags per department) via an asynchronous Cloud Run worker pool configured with VPC Service Controls.",
+          C: "1) Obfuscation (renaming tool functions with random UUIDs), 2) Throttling (limiting every user to 1 prompt per hour), and 3) Archiving (exporting all prompts to Coldline Storage) inside a managed execution environment backed by.",
+          D: "1) Virtualization (running every tool inside nested KVM hypervisors), 2) Translation (converting Python agents to Java), and 3) Decentralization (allowing every developer to use personal API keys) with deterministic schema."
+        },
+        answer: "A",
+        why: "M2S2 (Slide 7: 'Visibility') lists the 3 pillars: (1) Visibility (universal discovery, access/ownership, attribution), (2) Control (identity, lifecycle, compliance), and (3) Security (perimeter, threat detection, circuit breaker).",
+        trap: "Remember the 'Stop a rogue Agent' requirement under Security: enterprises need an immediate circuit breaker to terminate agent execution.",
+        theory: "The 3 Pillars of Agent Governance: Visibility (Agent Registry), Control (Agent Identity & least-privilege IAM), and Security (Model Armor, ADK Callbacks, Circuit Breaker)."
+      },
+      {
+        id: "[M2-06]",
+        module: "Module 2",
+        topic: "M2S2 • Agent Governance & Agent Registry — Agent Registry Data Model & Registration Mechanisms (Hard)",
+        question: "In the Gemini Enterprise Agent Platform (GEAP) governance architecture, how is the Agent Registry data model architected with respect to Read vs Write access and how do agents/MCP servers populate it?",
+        options: {
+          A: "Every developer has unrestricted Read/Write root access to mutate global Agent Registry records via raw SQL queries against the underlying Spanner system tables inside a managed execution environment backed by Cloud KMS encryption keys, OpenTelemetry span exporters, and automated CI/CD gates with deterministic schema validation.",
+          B: "The Agent Registry exposes a unified Read API for discovery/inventory across the organization, while Write operations are federated across three onboarding paths: Automated Discovery (Agent Platform (Agent Engine) / Cloud Run / GKE), Curated Catalog Sync, and Manual Registration of external/third-party agents & MCP servers.",
+          C: "The Agent Registry is a static YAML file stored inside each developer's local .git/config directory that is never synchronized with Google Cloud IAM or Cloud Asset Inventory with deterministic schema validation, token-level rate limiting, and per-tenant IAM role bindings enforced at the service boundary while enforcing stateless gRPC.",
+          D: "Write access is restricted exclusively to third-party SaaS vendors outside Google Cloud, while internal Google Cloud agents on Agent Platform (Agent Engine) cannot be listed in the Registry while enforcing stateless gRPC load balancing across regional Agent Platform endpoints and auditing IAM policy bindings in Cloud Logging."
+        },
+        answer: "B",
+        why: "M2S2 specifies this exact API architecture: write via the Service resource; discover via read-only Agent, McpServer, or Endpoint resources. Automatic Registration extracts skills directly from the agent's Agent Card.",
+        trap: "Write = Service resource; Read/Discover = Agent, McpServer, Endpoint. A2A metadata comes from the Agent Card.",
+        theory: "Visibility: universal discovery via Agent Registry writable Service and read-only Agent/McpServer/Endpoint/Skill.",
+        note: "In practice, Cloud Run agents require manual registration via gcloud agent-registry services create (auto-registration applies to Agent Runtime, GE, GKE with annotations, and official GCP MCP servers)."
+      },
+      {
+        id: "[M2-07]",
+        module: "Module 2",
+        topic: "M2S2 • Agent Governance & Identity — Agent Identifier vs Agent Principal & agentidentity.googleapis.com (Hard)",
+        question: "When enabling Managed Agent Identity (agentidentity.googleapis.com) to govern autonomous agents with cryptographic workload identities rather than shared static Service Account keys, what is the distinction between the Agent Identifier and the Agent Principal?",
+        options: {
+          A: "The Agent Identifier is the immutable resource identity metadata describing the agent deployment (agents/{id}), whereas the Agent Principal is the actionable IAM principal (principal://...) bound inside Cloud IAM allow/deny policies and recorded in Cloud Audit Logs.",
+          B: "The Agent Identifier is a temporary 6-digit OTP code sent to the user's phone, whereas the Agent Principal is the human developer's @google.com corporate email address with deterministic schema validation, token-level rate limiting, and per-tenant IAM role bindings enforced at the service boundary.",
+          C: "The Agent Identifier is the TCP port number (8080) exposed by the Cloud Run container, whereas the Agent Principal is the SHA-256 hash of the system prompt string while enforcing stateless gRPC load balancing across regional Agent Platform endpoints and auditing IAM policy bindings in Cloud Logging.",
+          D: "The Agent Identifier is used exclusively for billing cost allocation in BigQuery, whereas the Agent Principal is a client-side JavaScript cookie stored in the user's browser via an asynchronous Cloud Run worker pool configured with VPC Service Controls, Workload Identity Federation, and."
+        },
+        answer: "A",
+        why: "In M2S2 ('Key Concepts: Agent, Agent Identifier, Agent Principal, Binding'), Agent Identifier is defined as the globally unique immutable URN, and Agent Principal as the IAM identity (workload identity) bound to IAM policies.",
+        trap: "Replace deprecated connectors with agentidentity.googleapis.com!",
+        theory: "Control: least-privilege Agent Identity across ID-1 User, ID-2 Agent SPIFFE spiffe://, and ID-3 Delegated OAuth; distinguishing immutable Agent Identifier URN from IAM Agent Principal."
+      },
+      {
+        id: "[M2-08]",
+        module: "Module 2",
+        topic: "M2S2 • Agent Governance & Model Armor — Model Armor vs ADK Callbacks in the Security Stack (Core)",
+        question: "In a defense-in-depth security architecture for enterprise agents, why should architects combine Google Cloud Model Armor with ADK Runtime Callbacks (before_model_callback / before_tool_callback) rather than relying on either mechanism alone?",
+        options: {
+          A: "Model Armor provides AI-driven semantic and content security at the gateway/API boundary (detecting prompt injection, jailbreaks, toxic content, sensitive data/SDP leaks, and malicious URLs in prompts and RAG/tool outputs), while ADK Callbacks enforce deterministic, application-specific business logic and RBAC invariants in Python code (e.g., refund_amount <= 5000).",
+          B: "Model Armor is used solely to compress CSS stylesheets in the frontend web app, while ADK Callbacks are used to provision VPC peering routes in Terraform with deterministic schema validation, token-level rate limiting, and per-tenant IAM role bindings enforced at the service boundary while enforcing stateless gRPC load balancing across regional Agent Platform endpoints and auditing IAM policy.",
+          C: "Model Armor replaces Cloud IAM for database authentication, while ADK Callbacks encrypt data at rest using customer-managed encryption keys (CMEK) in Cloud Storage while enforcing stateless gRPC load balancing across regional Agent Platform endpoints and auditing IAM policy bindings in Cloud Logging via an asynchronous Cloud Run worker pool configured with VPC Service Controls, Workload.",
+          D: "Model Armor only inspects outgoing HTTP status codes (200 vs 500), while ADK Callbacks can only run asynchronously 24 hours after a conversation has ended via an asynchronous Cloud Run worker pool configured with VPC Service Controls, Workload Identity Federation, and JSON schema validation inside a managed execution environment backed by Cloud KMS encryption keys, OpenTelemetry span.",
+        },
+        answer: "A",
+        why: "In M2S2, Model Armor provides centralized, ML-powered semantic threat & DLP screening against prompt injection, jailbreaks, and sensitive data exposure, while ADK Callbacks enforce deterministic business/application constraints in code.",
+        trap: "Defense-in-depth requires BOTH: Model Armor for semantic threat screening + ADK Callbacks & MCP IAM for deterministic authorization.",
+        theory: "Model Armor screens semantic threats (prompts & responses); ADK Callbacks enforce deterministic code logic."
+      },
+      {
+        id: "[M2-09]",
+        module: "Module 2",
+        topic: "M2S2 • Agent Governance & A2A Protocol — MCP vs A2A (Agent2Agent Protocol) & Agent Cards (Core)",
+        question: "Enterprise architectures increasingly standardize on two open protocols: MCP (Model Context Protocol) and A2A (Agent2Agent Protocol). How do the architectural responsibilities and discovery artifacts of MCP and A2A complement each other?",
+        options: {
+          A: "MCP standardizes vertical agent-to-tool/data connectivity (exposing deterministic Tools, Resources, and Prompts from servers/databases), whereas A2A standardizes horizontal agent-to-agent collaboration across opaque peer agents (discovering peer capabilities via Agent Cards at /.well-known/agent.json, delegating stateful tasks, and negotiating multi-turn artifacts across frameworks).",
+          B: "MCP is used exclusively for agent-to-agent negotiation between autonomous orchestrators, whereas A2A is a low-level JDBC database driver for reading CSV files from Cloud Storage while enforcing stateless gRPC load balancing across regional Agent Platform endpoints and auditing IAM policy bindings in Cloud Logging via an asynchronous Cloud Run worker pool configured with VPC Service Controls.",
+          C: "MCP only runs on AWS Lambda functions in Node.js, whereas A2A is a proprietary binary protocol restricted to single-process Python scripts running on a local laptop via an asynchronous Cloud Run worker pool configured with VPC Service Controls, Workload Identity Federation, and JSON schema validation inside a managed execution environment backed by Cloud KMS encryption keys.",
+          D: "MCP and A2A are two marketing names for the exact same JSON-RPC schema and cannot be used together within the same enterprise architecture inside a managed execution environment backed by Cloud KMS encryption keys, OpenTelemetry span exporters, and automated CI/CD gates with deterministic schema validation, token-level rate limiting, and per-tenant IAM role bindings enforced."
+        },
+        answer: "A",
+        why: "The distinction is fundamental: MCP (Agent <-> Tool/Data) connects an agent to tools, databases, and context resources; A2A (Agent <-> Agent) connects autonomous agents to other peer agents using Agent Cards for capability discovery in Agent Registry.",
+        trap: "Agent -> Tool/DB = MCP. Agent -> Peer Agent = A2A (published via Agent Cards in Agent Registry).",
+        theory: "MCP handles vertical tool/data integration; A2A handles horizontal agent-to-peer collaboration."
+      },
+
+      // MODULE 3
+      {
+        id: "[M3-01]",
+        module: "Module 3",
+        topic: "M3L1 • Introduction to Agent SDKs & ADK 2.0 — ADK 1.x vs ADK 2.0 (Core)",
+        question: "What is the primary architectural advancement introduced in ADK 2.0 compared to earlier ADK 1.x agent orchestration runtimes?",
+        options: {
+          A: "ADK 2.0 removes support for Python type annotations and requires all agent workflows to be written in declarative XML configuration files deployed on App Engine Standard while enforcing stateless gRPC load balancing across regional Agent Platform endpoints and auditing IAM policy.",
+          B: "ADK 2.0 introduces a unified, deterministic graph-based execution engine (WorkflowGraph / node-and-edge state machine) that seamlessly blends deterministic code nodes, parallel/conditional branches, and autonomous LLM reasoning nodes with built-in checkpointing and replayability.",
+          C: "ADK 2.0 replaces the Agent Platform Gemini API with a built-in local CPU inference engine that runs 70B-parameter models directly inside browser service workers via an asynchronous Cloud Run worker pool configured with VPC Service Controls, Workload Identity Federation, and.",
+          D: "ADK 2.0 deprecates multi-agent delegation (sub_agents) and enforces a strict single-agent-per-project limit across all Google Cloud organizations inside a managed execution environment backed by Cloud KMS encryption keys, OpenTelemetry span exporters, and automated CI/CD gates."
+        },
+        answer: "B",
+        why: "M3L1 explains that enterprise production requires deterministic control over state transitions and compliance loops. ADK 2.0 introduces a Directed Graph with deterministic code routing and native Human-in-the-Loop interrupts.",
+        trap: "LLM reasoning INSIDE nodes + deterministic code control BETWEEN nodes = ADK 2.0 Graph Engine.",
+        theory: "In ADK 2.0: before_tool_callback returning None allows tool execution, whereas returning a dict short-circuits the tool. State prefixes govern persistence.",
+        note: "In ADK 2.0, graph workflows import from google.adk.workflow (Edge, Workflow)."
+      },
+      {
+        id: "[M3-02]",
+        module: "Module 3",
+        topic: "M3L1 • ADK 2.0 Callbacks & Guardrails — before_tool_callback Return Value Mechanics (Hard)",
+        question: "You implement a deterministic security policy in ADK using before_tool_callback(callback_context: CallbackContext, tool: BaseTool, args: dict) -> Optional[dict]. What is the exact runtime behavior when your callback returns None versus when it returns a Python dict such as {'status': 'error', 'reason': 'Amount exceeds $10,000 policy limit'}?",
+        options: {
+          A: "Returning None immediately terminates the entire user session with an HTTP 403 error; returning a dict overwrites the tool's input arguments (args) and proceeds to execute the underlying Python tool function via an asynchronous Cloud Run worker pool configured.",
+          B: "Returning None allows ADK to proceed with normal execution of the underlying tool function; returning a dict short-circuits (skips) the actual tool execution and immediately returns that dict to the LLM as the FunctionResponse observation.",
+          C: "Returning None causes ADK to retry the previous LLM call with a higher temperature; returning a dict saves the dictionary to Cloud Storage and pauses the container until a human administrator restarts it inside a managed execution.",
+          D: "Both None and dict allow the tool function to execute normally, because before_tool_callback is a read-only telemetry hook that cannot prevent or intercept tool execution with deterministic schema validation, token-level rate."
+        },
+        answer: "B",
+        why: "In ADK before_tool_callback, returning None tells the ADK Runner to proceed and execute the underlying tool function. Returning a dict short-circuits (skips) the tool call and feeds that dictionary back to the LLM as the simulated tool output!",
+        trap: "Memorize this exact rule: return None → ALLOW tool execution; return {'error': '...'} (a dict) → BLOCK/SKIP tool execution!",
+        theory: "before_tool_callback returning None allows tool execution; returning a dict short-circuits the tool and sends that dict to the LLM as FunctionResponse."
+      },
+      {
+        id: "[M3-03]",
+        module: "Module 3",
+        topic: "M3L1 • ADK 2.0 Callbacks & PII Scrubbing — before_model_callback vs before_tool_callback (Core)",
+        question: "A healthcare customer requires that any Social Security Number (SSN) or credit card number accidentally typed by a patient in the chat be scrubbed before the payload ever leaves the ADK container to reach the Agent Platform Gemini API endpoint, and that if a blocked keyword is detected, a static compliance notice is returned immediately without calling the LLM. Which ADK callback hook and return type must you implement?",
+        options: {
+          A: "Implement before_model_callback(callback_context, llm_request): mutate llm_request.contents in place to redact PII before inference, or return an LlmResponse object directly to short-circuit the Agent Platform model call altogether.",
+          B: "Implement after_tool_callback(callback_context, tool, args, tool_response): redact PII from the database response dictionary after the Gemini model has already processed the raw patient message inside a managed execution environment backed by Cloud KMS.",
+          C: "Implement before_tool_callback(callback_context, tool, args): return None whenever a Social Security Number is detected in the user's chat prompt so the LLM call is skipped with deterministic schema validation, token-level rate limiting, and.",
+          D: "Implement after_model_callback(callback_context, llm_response): mutate the final generated markdown string right before rendering it in the browser UI while leaving the outbound llm_request untouched while enforcing."
+        },
+        answer: "A",
+        why: "M3L1 maps (1) scrubbing PII before hitting Gemini to before_model_callback, and (2) blocking unauthorized tool execution to before_tool_callback.",
+        trap: "before_model_callback intercepts llm_request (or returns LlmResponse to skip the model call); before_tool_callback intercepts tool calls before execution.",
+        theory: "before_model_callback returning an LlmResponse skips the LLM call entirely."
+      },
+      {
+        id: "[M3-04]",
+        module: "Module 3",
+        topic: "M3L1 • ADK State & Scoped Variables — Scoped State Prefixes & Dynamic Injection (Hard)",
+        question: "In an ADK SequentialAgent pipeline (sub_agents=[researcher_agent, critic_agent]), you want researcher_agent's final response to be automatically stored into session state under the key research_summary and dynamically injected into critic_agent's system instruction at runtime. How is this wired in ADK without writing custom glue callbacks?",
+        options: {
+          A: "Configure output_key='research_summary' on researcher_agent, and include the placeholder {research_summary} inside critic_agent's instruction string; furthermore, use state key prefixes (user:, app:, temp:, or unprefixed session scope) to control persistence lifecycle.",
+          B: "Configure export_env='RESEARCH_SUMMARY' on researcher_agent so ADK writes the text into os.environ['RESEARCH_SUMMARY'], which critic_agent reads at container boot time with deterministic schema validation, token-level rate limiting, and per-tenant IAM role bindings enforced at the service boundary.",
+          C: "Save researcher_agent's output as a binary PNG file inside InMemoryArtifactService and pass the file path via an HTTP X-Agent-State header to critic_agent while enforcing stateless gRPC load balancing across regional Agent Platform endpoints and auditing IAM policy bindings in Cloud Logging via an.",
+          D: "Set shared_memory=True on the Runner constructor, which automatically concatenates the full Python source code of researcher_agent into critic_agent's tool list via an asynchronous Cloud Run worker pool configured with VPC Service Controls, Workload Identity Federation, and JSON schema validation."
+        },
+        answer: "A",
+        why: "Setting output_key='credit_tier' on Agent B stores its output in session.state['credit_tier'], which Agent C can reference directly via {credit_tier} in its instruction.",
+        trap: "The 4 ADK state scopes: no prefix (current session), user: (persists across sessions for user), app: (shared across all users), and temp: (cleared after turn).",
+        theory: "State prefixes (user:, app:, temp:, or session scope) govern persistence lifecycle."
+      },
+      {
+        id: "[M3-05]",
+        module: "Module 3",
+        topic: "M3L1 • ADK Sessions & Streaming — SessionService vs Memory Bank (Core)",
+        question: "When architecting stateful conversational agents in ADK, what is the precise functional boundary between Session State (SessionService) and Long-Term Memory (MemoryBank / AgentPlatformMemoryBankService)?",
+        options: {
+          A: "SessionService manages the chronological Event stream and working state dictionary of a single active conversation thread (session_id), whereas MemoryBank extracts, consolidates, and indexes durable user facts and preferences across multiple distinct sessions over weeks or months for semantic retrieval.",
+          B: "SessionService is used exclusively to store binary PDF and audio attachments in Cloud Storage, whereas MemoryBank is an in-memory Redis cache that expires 30 seconds after each turn while enforcing stateless gRPC load balancing across regional Agent Platform endpoints and auditing IAM policy bindings in.",
+          C: "SessionService permanently fine-tunes the Gemini model weights after every user turn, whereas MemoryBank only stores the static system prompt defined in AGENTS.md via an asynchronous Cloud Run worker pool configured with VPC Service Controls, Workload Identity Federation, and JSON schema validation.",
+          D: "SessionService can only be used in local CLI testing (adk run), whereas MemoryBank is the only state mechanism permitted when running inside Cloud Run or GKE inside a managed execution environment backed by Cloud KMS encryption keys, OpenTelemetry span exporters, and automated CI/CD gates."
+        },
+        answer: "A",
+        why: "SessionService persists the turn-by-turn Event log of a session, while Memory Bank provides cross-session long-term semantic memory of user preferences and facts.",
+        trap: "Multi-channel continuity across Cloud Run instances is solved by VertexAiSessionService or DatabaseSessionService + Runner.",
+        theory: "SessionService handles immediate conversation history; MemoryBank handles semantic recall of facts across historical sessions."
+      },
+      {
+        id: "[M3-06]",
+        module: "Module 3",
+        topic: "M3L2 • Agent Lifecycle & Evaluation — The 7 Dimensions of Evaluating Coding Agents (Hard)",
+        question: "When evaluating an autonomous Coding / Software Engineering Agent in an automated benchmark harness, why is checking whether the final generated code compiles (Syntax Pass) insufficient, and what comprehensive multi-dimensional evaluation rubric is required?",
+        options: {
+          A: "Syntax compilation only verifies grammar; a rigorous coding-agent evaluation harness scores 7 dimensions: 1) Functional Correctness (unit/integration tests), 2) Security & Vulnerability posture (SAST/secrets), 3) Spec/Architecture Adherence, 4) Tool & Trajectory Efficiency, 5) Code Maintainability, 6) Latency/Cost budget, and 7) UI/UX Verification.",
+          B: "Syntax compilation is too slow to run in CI/CD; instead, coding agents must be evaluated solely by counting the total number of lines of code generated per second via an asynchronous Cloud Run worker pool configured with VPC Service Controls, Workload Identity Federation, and JSON schema validation inside a managed execution environment backed by Cloud KMS encryption.",
+          C: "Coding agents should only be evaluated using BLEU and ROUGE-L lexical overlap scores against a single reference file written in Python 2.7 inside a managed execution environment backed by Cloud KMS encryption keys, OpenTelemetry span exporters, and automated CI/CD gates with deterministic schema validation, token-level rate limiting, and.",
+          D: "A coding agent is considered 100% verified as long as the LLM judge outputs a politeness score above 4.5/5.0 on the agent's conversational explanation with deterministic schema validation, token-level rate limiting, and per-tenant IAM role bindings enforced at the service boundary while enforcing stateless gRPC load balancing across."
+        },
+        answer: "A",
+        why: "M3L2 defines the dimensions across User-Facing (Intent Satisfaction, Functional Correctness, Visual/Behavioral, Cost) and Internal (Code Quality, Trajectory Quality, Self-Repair Behaviour), plus transversal Safety.",
+        trap: "Dimension 1 = Intent Satisfaction; Dimension 7 = Self-Repair Behaviour!",
+        theory: "ADK evaluation inspects both tool trajectory and final response. An agent that skips required tools fails trajectory validation.",
+        note: "Official 7 Dimensions: 1. Intent Satisfaction, 2. Functional Correctness, 3. Visual/Behavioural, 4. Cost & Efficiency, 5. Code Quality & Conventions, 6. Trajectory Quality, 7. Self-Repair Behaviour."
+      },
+      {
+        id: "[M3-07]",
+        module: "Module 3",
+        topic: "M3L2 • Agent Lifecycle & Evaluation — Evaluation Methods & Trajectory Inspection (Core)",
+        question: "An enterprise refund agent is required to call verify_order_status(order_id) and check_fraud_score(user_id) before calling issue_refund(order_id, amount). During an adk eval run, the agent skips check_fraud_score() and guesses that the user is safe, yet produces the exact same final text response as the golden reference. Which evaluation metric catches this critical safety failure, and which matching mode allows extra diagnostic logging tool calls in between?",
+        options: {
+          A: "Response ROUGE-1 similarity catches the missing tool call, while Trajectory Exact Match allows unlimited extra diagnostic tool calls anywhere in the trace inside a managed execution environment backed by Cloud KMS encryption keys, OpenTelemetry span exporters, and automated CI/CD gates with deterministic schema validation, token-level.",
+          B: "Trajectory Evaluation (tool_use inspection) catches the skipped fraud check; specifically, Trajectory In-Order Match enforces that verify_order_status -> check_fraud_score -> issue_refund occur in that exact relative sequence while permitting additional non-conflicting diagnostic/logging tool calls in between.",
+          C: "Cosine embedding distance on the final paragraph catches the skipped tool call, while Trajectory Any-Order Match guarantees that issue_refund is never called before check_fraud_score with deterministic schema validation, token-level rate limiting, and per-tenant IAM role bindings enforced at the service boundary while enforcing.",
+          D: "Token-per-second throughput profiling catches the skipped fraud check, while setting temperature=1.0 guarantees deterministic tool ordering without trajectory assertions while enforcing stateless gRPC load balancing across regional Agent Platform endpoints and auditing IAM policy bindings in Cloud Logging."
+        },
+        answer: "B",
+        why: "Slide 25 stresses that Observability is the prerequisite for Evaluation because you cannot inspect trajectories without traces/spans. Trajectory inspection catches skipped tool steps even when the final text looks correct.",
+        trap: "Offline Evals before deploy → Online Evals (LLM-as-a-judge + Trajectory/Trace monitoring) in production.",
+        theory: "An agent that guesses the right answer while skipping a required tool call ('lucky hallucination') fails trajectory validation."
+      },
+      {
+        id: "[M3-08]",
+        module: "Module 3",
+        topic: "M3L3 • Harness Engineering — Definition, Formula & Origin (Core)",
+        question: "In advanced agentic systems engineering, performance on complex real-world benchmarks (such as SWE-bench or Terminal Bench) often jumps significantly when keeping the exact same underlying foundation model weights and upgrading the surrounding Harness. How is Harness Engineering formally defined (Agent = Model + Harness)?",
+        options: {
+          A: "Harness Engineering is the practice of over-clocking GPU tensor cores and applying 4-bit activation quantization to reduce floating-point precision loss during inference with deterministic schema validation, token-level rate limiting, and per-tenant IAM role bindings enforced at the service boundary while enforcing stateless gRPC load balancing across.",
+          B: "Harness Engineering is the systematic design of the execution environment wrapping the model: structured specifications (AGENTS.md), tool schemas & error-recovery messages, context compaction/routing, sandboxing, and deterministic self-verification loops (verify.py / test runners) that steer model intelligence into reliable outcomes.",
+          C: "Harness Engineering is a manual prompt-paraphrasing technique where engineers translate English system prompts into Latin to bypass token limit quotas while enforcing stateless gRPC load balancing across regional Agent Platform endpoints and auditing IAM policy bindings in Cloud Logging via an asynchronous Cloud Run worker pool configured with VPC Service.",
+          D: "Harness Engineering refers exclusively to the visual CSS styling of the chat widget used by end users to submit text prompts to a stateless REST endpoint via an asynchronous Cloud Run worker pool configured with VPC Service Controls, Workload Identity Federation, and JSON schema validation inside a managed execution environment backed by Cloud KMS encryption.",
+        },
+        answer: "B",
+        why: "Agent = Model + Harness: the Harness wraps prompts and context with deterministic enforcement (linters/hooks) and automated self-verification feedback loops (verify.py / pytest).",
+        trap: "The Harness is the outermost layer: it provides the structure, tools, and feedback loop that make the model useful.",
+        theory: "Harness Engineering designs the execution wrapper: explicit specifications, actionable tool error messages, context compaction, sandboxing, and deterministic self-verification loops."
+      },
+      {
+        id: "[M3-09]",
+        module: "Module 3",
+        topic: "M3L3 • Harness Engineering — Real-World Harness Proof Points (Hard)",
+        question: "Which empirical engineering finding across production benchmarks (such as Terminal Bench 2.0, multi-file repository migrations, and ADK language ports) directly validates the Harness Engineering principle?",
+        options: {
+          A: "Swapping a frontier model into a poorly designed harness with vague tool error messages, uncompacted context dumps, and no self-verification test loop yields worse reliability than a smaller/faster model wrapped in a disciplined verification harness.",
+          B: "Removing all unit tests, linter feedback, and compiler error outputs from the agent's tool observations increases multi-file refactoring accuracy by 65% while enforcing stateless gRPC load balancing across regional Agent Platform endpoints and.",
+          C: "Giving an agent a single monolithic bash command tool with root sudo rm -rf privileges and zero workspace rules (AGENTS.md) eliminates hallucinated file paths via an asynchronous Cloud Run worker pool configured with VPC Service.",
+          D: "Increasing context window history to 2,000,000 raw unindexed terminal log lines per turn guarantees 100% pass rates without needing any structured tool schemas inside a managed execution environment backed by Cloud KMS encryption."
+        },
+        answer: "A",
+        why: "M3L3 cites landmark proof points: Terminal Bench 2.0 (+13.7-point gain, 52.8% → 66.5%) via self-verification loops, and Anthropic's 3-Agent Harness (Planner + Generator + Evaluator).",
+        trap: "Memorize the Terminal Bench 2.0 numbers (#30 -> #5, +13.7 points) and the 4 surfaces of the Antigravity Harness (IDE, CLI, SDK, Agent Manager).",
+        theory: "A disciplined harness with self-verification loops outperforms raw model intelligence operating without verification."
+      },
+      {
+        id: "[M3-10]",
+        module: "Module 3",
+        topic: "M3L4 • Connecting Agents to Data — Blueprint for Agentic Data Platforms & MCP Toolbox (Core)",
+        question: "When connecting ADK or LangGraph agents to enterprise relational and analytical databases (AlloyDB, Cloud SQL, Spanner, BigQuery), why should architects deploy MCP Toolbox for Databases (genai-toolbox) between the agent and the database rather than giving the LLM a raw SQL execution tool with a database connection string?",
+        options: {
+          A: "Because MCP Toolbox for Databases centralizes connection pooling, OAuth/IAM credential brokering, parameterized pre-vetted query tools (tools.yaml), schema curation, and OpenTelemetry tracing—preventing arbitrary SQL injection, connection exhaustion, and credential exposure in agent code.",
+          B: "Because Python's standard psycopg2 and sqlalchemy libraries are incompatible with Linux containers running on Google Cloud Run or GKE Autopilot via an asynchronous Cloud Run worker pool configured with VPC Service Controls, Workload Identity Federation, and JSON schema validation inside a managed execution.",
+          C: "Because MCP Toolbox for Databases automatically converts relational SQL tables into unstructured MP4 video streams so Gemini can process them via multimodal vision inside a managed execution environment backed by Cloud KMS encryption keys, OpenTelemetry span exporters, and automated.",
+          D: "Because MCP Toolbox for Databases bypasses all BigQuery and AlloyDB IAM permission checks so any anonymous web user can drop or alter production tables with deterministic schema validation, token-level rate limiting, and per-tenant IAM role bindings enforced at the service boundary."
+        },
+        answer: "A",
+        why: "MCP Toolbox for Databases acts as the dedicated middleware layer that lets agents securely query AlloyDB, Cloud SQL, Spanner, and BigQuery via governed MCP tool definitions rather than raw database connections.",
+        trap: "Enforce safety at the database and tool layer (read-only roles, parameterized tools.yaml) rather than relying on system prompt instructions alone.",
+        theory: "The 4 domains of the Agentic Data Platform: 1) Data Collection, 2) Data Storage, 3) Data Processing, and 4) Data Governance."
+      },
+      {
+        id: "[M3-11]",
+        module: "Module 3",
+        topic: "M3L4 • Connecting Agents to Data — BigQuery ObjectRef & Managed Folders (Hard)",
+        question: "An enterprise data platform stores millions of unstructured PDF invoices, claims photos, and audio recordings in Cloud Storage (gs://...) alongside structured customer records in BigQuery. How do BigQuery ObjectRef columns and Cloud Storage Managed Folders work together to power multimodal Data Agents?",
+        options: {
+          A: "ObjectRef stores structured URI & metadata pointers to unstructured Cloud Storage objects directly inside standard BigQuery table rows, while Cloud Storage Managed Folders enforce fine-grained folder-level IAM policies—allowing SQL and multimodal AI functions (AI.GENERATE / Data Agents) to join structured and unstructured data under unified governance.",
+          B: "ObjectRef base64-encodes entire 500MB video files into BigQuery STRING columns, while Cloud Storage Managed Folders automatically make all buckets world-readable (allUsers) inside a managed execution environment backed by Cloud KMS encryption keys, OpenTelemetry span exporters, and automated CI/CD gates with deterministic schema validation, token-level rate limiting, and.",
+          C: "ObjectRef is a client-side browser plugin that downloads raw Parquet files to the user's desktop, while Managed Folders disable Cloud KMS encryption to speed up downloads with deterministic schema validation, token-level rate limiting, and per-tenant IAM role bindings enforced at the service boundary while enforcing stateless gRPC load balancing across regional Agent Platform.",
+          D: "ObjectRef deletes unstructured files from Cloud Storage after 24 hours, while Managed Folders convert all PDF documents into legacy CSV files without preserving layout while enforcing stateless gRPC load balancing across regional Agent Platform endpoints and auditing IAM policy bindings in Cloud Logging via an asynchronous Cloud Run worker pool."
+        },
+        answer: "A",
+        why: "ObjectRef represents a Cloud Storage object (URI, size, type), enabling multimodal queries across structured + unstructured data in BigQuery/GCS. Managed Folders grant fine-grained IAM permissions to specific folder prefixes within a bucket.",
+        trap: "ObjectRef = structured reference to GCS objects; Managed Folders = prefix-level IAM on GCS buckets.",
+        theory: "Unified data platform governance connects object storage with structured analytics through ObjectRef pointers and Managed Folder ACLs."
+      },
+      {
+        id: "[M3-12]",
+        module: "Module 3",
+        topic: "M3L5 • Observability, Tracing & Telemetry — OpenTelemetry 4-Level Hierarchy (Core)",
+        question: "To diagnose latency bottlenecks, token spikes, and multi-agent handoff loops in Cloud Trace and Cloud Monitoring, OpenTelemetry instrumentation for agentic systems structures telemetry into a 4-level hierarchical model. What is the exact ordering of this hierarchy from the smallest atomic execution unit to the highest end-to-end business unit?",
+        options: {
+          A: "Task (atomic call) < Session (single tool) < Trace (single LLM token) < Span (multi-day project) with deterministic schema validation, token-level rate limiting, and per-tenant IAM role bindings enforced at the service boundary while enforcing.",
+          B: "Span (single atomic operation: one LLM call or one tool execution) < Trace (one complete end-to-end turn/request graph) < Session (multi-turn conversation thread) < Task (high-level business objective potentially spanning sessions)",
+          C: "Metric (log line) < Bucket (GCS folder) < Cluster (GKE node) < Organization (GCP billing ID) while enforcing stateless gRPC load balancing across regional Agent Platform endpoints and auditing IAM policy bindings in Cloud Logging via an asynchronous Cloud.",
+          D: "Prompt (system instruction) < Token (sub-word unit) < Embedding (768-dim vector) < Index (HNSW graph) via an asynchronous Cloud Run worker pool configured with VPC Service Controls, Workload Identity Federation, and JSON schema validation inside a."
+        },
+        answer: "B",
+        why: "M3L5 defines the 4 levels: 1. SPAN (single atomic action), 2. TRACE (single turn request graph), 3. SESSION (multi-turn conversation thread), 4. TASK (high-level business workflow).",
+        trap: "Formula to memorize: SPAN < TRACE < SESSION < TASK.",
+        theory: "OpenTelemetry 4-Level Hierarchy: SPAN (atomic call) < TRACE (turn) < SESSION (conversation) < TASK (multi-agent objective)."
+      },
+      {
+        id: "[M3-13]",
+        module: "Module 3",
+        topic: "M3L5 • Observability & Telemetry — OpenTelemetry GenAI Semantic Conventions (Core)",
+        question: "When exporting standardized OpenTelemetry (OTel) traces from an ADK or Agent Platform (Agent Engine) deployment to Cloud Trace and BigQuery for FinOps and quality auditing, which semantic convention namespace and attribute keys record model consumption and tool execution metadata?",
+        options: {
+          A: "The k8s.pod.* namespace (k8s.pod.cpu_limit, k8s.pod.memory_rss, k8s.node.ephemeral_storage) attached to the VPC flow log exporter while enforcing stateless gRPC load balancing across regional Agent Platform.",
+          B: "The OpenTelemetry GenAI semantic conventions (gen_ai.*), specifically attributes such as gen_ai.request.model, gen_ai.usage.input_tokens, gen_ai.usage.output_tokens, gen_ai.operation.name, and gen_ai.tool.name.",
+          C: "The http.cookie.* namespace (http.cookie.session_id, http.user_agent.browser_version, http.tls.cipher_suite) injected by the external CDN proxy via an asynchronous Cloud Run worker pool configured with.",
+          D: "The sql.cursor.* namespace (sql.cursor.row_count, sql.transaction.isolation_level, sql.lock.wait_ms) emitted by the local SQLite driver inside a managed execution environment backed by Cloud KMS."
+        },
+        answer: "B",
+        why: "M3L5 Slide 8 lists the exact standard attribute names: gen_ai.agent.id, gen_ai.conversation.id, gen_ai.operation.name, gen_ai.request.model, gen_ai.usage.input_tokens, gen_ai.usage.output_tokens, gen_ai.input.messages / gen_ai.output.messages.",
+        trap: "Always look for the gen_ai.* prefix—that is the vendor-neutral OpenTelemetry standard.",
+        theory: "Use standardized gen_ai.* OpenTelemetry attributes to monitor token consumption, costs, and tool trajectories."
+      },
+      {
+        id: "[M3-14]",
+        module: "Module 3",
+        topic: "M3L5 • FinOps Cost Optimization — Consumption Tiers & FinOps Levers (Core)",
+        question: "A global financial institution runs two distinct Gemini workloads on Agent Platform: (1) a customer-facing trading co-pilot requiring guaranteed sub-second TTFT and zero HTTP 429 ResourceExhausted throttling during market-open spikes, and (2) an overnight compliance audit that processes 2,000,000 static archive documents with a 12-hour completion window. Which combination of Agent Platform Consumption Tiers minimizes total FinOps spend while meeting both SLAs?",
+        options: {
+          A: "Run both the real-time trading co-pilot and the overnight 2M-document batch audit on standard Pay-As-You-Go (On-Demand) in a single shared region without quotas via an asynchronous Cloud Run worker pool configured with VPC Service Controls, Workload Identity Federation, and JSON schema validation inside a managed execution.",
+          B: "Use Provisioned Throughput (reserved GSUs with Priority PayGo spillover) for the latency-critical trading co-pilot to guarantee capacity, and use the Agent Platform Batch Prediction API (which provides a 50% cost discount over standard on-demand pricing) for the asynchronous overnight compliance audit.",
+          C: "Run the real-time trading co-pilot on the asynchronous Agent Platform Batch API (24-hour SLA), and purchase dedicated annual Provisioned Throughput GSUs sitting idle 18 hours a day for the overnight archive job inside a managed execution environment backed by Cloud KMS encryption keys, OpenTelemetry span.",
+          D: "Disable token billing by routing both production workloads through free-tier personal Google AI Studio API keys shared across 50 developer accounts with deterministic schema validation, token-level rate limiting, and per-tenant IAM role bindings enforced at the service boundary while enforcing."
+        },
+        answer: "B",
+        why: "M3L5 details the consumption tiers: Provisioned Throughput for latency-critical steady-state SLA, and Batch Prediction API providing a 50% discount for asynchronous workloads.",
+        trap: "Headline FinOps numbers: 3x cost gap (Pro vs Flash-Lite); 90% savings on cached tokens with Context Caching; 50% discount on Batch Inference!",
+        theory: "Match workload latency SLAs to pricing tiers: Provisioned Throughput for real-time mission-critical applications; Batch API (50% off) for offline jobs."
+      },
+      {
+        id: "[M3-15]",
+        module: "Module 3",
+        topic: "M3L5 • FinOps Cost Optimization — Context Caching & Semantic Model Routing (Core)",
+        question: "An enterprise policy agent processes 500,000 requests per day. On every turn, the agent references an identical 180,000-token regulatory rulebook and product matrix. Traffic telemetry shows that 82% of user requests are straightforward Tier-1 policy lookups, while 18% require deep multi-hop legal reasoning. Which TWO architectural optimizations yield the largest reduction in token cost and p95 latency without degrading answer quality?",
+        options: {
+          A: "Enable Agent Platform Context Caching on the immutable 180,000-token rulebook prefix (delivering up to 90% input token cost savings and faster TTFT) AND implement Semantic Model Routing to direct the 82% simple lookups to gemini-3.7-flash while reserving gemini-3.5-pro for the 18% complex legal reasoning turns.",
+          B: "Truncate the 180,000-token regulatory rulebook down to its first 500 characters on every turn AND force 100% of Tier-1 FAQ queries through gemini-3.5-pro with thinking_budget=32768 inside a managed execution environment backed by Cloud KMS encryption keys, OpenTelemetry span exporters, and automated CI/CD gates with deterministic schema.",
+          C: "Re-upload the raw 180,000-token PDF bytes inside every individual FunctionResponse payload AND disable HTTP connection keep-alive between Cloud Run and Agent Platform with deterministic schema validation, token-level rate limiting, and per-tenant IAM role bindings enforced at the service boundary while enforcing stateless gRPC load balancing.",
+          D: "Replace the single agent with a 12-stage SequentialAgent where every sub-agent receives a full un-cached copy of the 180,000-token rulebook in its before_model_callback while enforcing stateless gRPC load balancing across regional Agent Platform endpoints and auditing IAM policy bindings in Cloud Logging."
+        },
+        answer: "A",
+        why: "Context Caching provides up to 90% savings on repetitive context prefixes, while Semantic Model Routing directs high-volume simple queries to Flash (3x cheaper and lower latency) while reserving Pro for complex reasoning.",
+        trap: "In cost/latency troubleshooting, switching over-provisioned Pro calls on routine turns to Flash + enabling caching is the standard fix.",
+        theory: "Combine Context Caching (up to 90% discount on cache hits) with Semantic Model Routing (Flash for routine retrieval, Pro for multi-hop synthesis)."
+      },
+      {
+        id: "[M3-16]",
+        module: "Module 3",
+        topic: "M3L4 • Data Platform & Curation — Role of Knowledge Catalog (Dataplex) (Core)",
+        question: "In the 4-layer Agentic Data Platform reference blueprint, why is Knowledge Catalog (Dataplex unified metadata, business glossary, lineage, and data quality scans) positioned directly between raw storage (BigQuery, Cloud Storage, Spanner) and the agentic consumption layer (MCP, Data Agents)?",
+        options: {
+          A: "Because without curated business semantics, verified glossary terms, data quality assertions, and fine-grained governance policies in Knowledge Catalog, Data Agents query raw 'data swamps'—leading to hallucinated table joins, inconsistent KPI calculations, and policy violations.",
+          B: "Because BigQuery cannot execute standard SQL SELECT queries unless every row is first copied into a physical Knowledge Catalog memory buffer on Compute Engine via an asynchronous Cloud Run worker pool configured with VPC Service Controls, Workload Identity Federation, and JSON schema validation.",
+          C: "Because Knowledge Catalog acts as a content delivery network (CDN) that caches static JPEG images for public consumer websites inside a managed execution environment backed by Cloud KMS encryption keys, OpenTelemetry span exporters, and automated CI/CD gates.",
+          D: "Because Knowledge Catalog automatically disables all row-level security (RLS) and column-level data masking policies so agents can read restricted PII columns without IAM checks with deterministic schema validation, token-level rate limiting, and per-tenant IAM role."
+        },
+        answer: "A",
+        why: "Connecting an LLM directly to raw, undocumented database tables leads to SQL hallucinations. Knowledge Catalog enriches schemas with business metadata, semantic descriptions, and governance policies so Data Agents generate accurate queries.",
+        trap: "Without the Curation/Governance layer (Knowledge Catalog), agents querying raw schemas suffer from 'Garbage In, Hallucination Out'.",
+        theory: "Knowledge Curation & Grounding bridges raw physical tables and semantic query generation."
+      },
+      {
+        id: "[M3-17]",
+        module: "Module 3",
+        topic: "Troubleshooting Labs — Diagnosing Frozen Antigravity IDE / CLI Processes (Hard)",
+        question: "During a timed hands-on troubleshooting challenge in a Linux workstation environment, you close the agentic IDE (Antigravity / agy) window to free memory. When you attempt to relaunch agy, the CLI hangs indefinitely and refuses to spawn a new UI window because an orphaned background language-server/daemon process is holding the workspace lock. What is the immediate terminal remediation?",
+        options: {
+          A: "Re-image the entire Cloud Workstation VM from the Google Cloud Console and wait 25 minutes for the startup script to reinstall Python and Docker inside a managed execution environment backed by Cloud.",
+          B: "Open a terminal shell (Konsole / bash), forcefully terminate the lingering daemon processes via sudo pkill -9 -f antigravity && sudo pkill -9 -f agy, and then relaunch the IDE.",
+          C: "Delete the entire project source repository (rm -rf ~/workspace) and recreate the ADK agent from scratch using pip install --force-reinstall google-adk with deterministic schema validation.",
+          D: "Modify /etc/resolv.conf to point DNS to 127.0.0.1 and restart the Linux kernel networking stack via systemctl restart systemd-networkd while enforcing stateless gRPC."
+        },
+        answer: "B",
+        why: "If Antigravity IDE or the agy CLI hangs or refuses to relaunch in the Linux lab desktop after closing a window, running sudo pkill -9 -f antigravity && sudo pkill -9 -f agy immediately clears the orphaned lock.",
+        trap: "Never waste 30 minutes restarting a Qwiklabs VM for a stuck daemon—kill the hung process and continue.",
+        theory: "Terminating lingering background server processes clears socket locks and frees local workstation resources."
+      },
+      {
+        id: "[M3-18]",
+        module: "Module 3",
+        topic: "Qwiklabs Grading & Validation Bucket — Checkpoint Score Finalization (Hard)",
+        question: "During an automated challenge lab graded by an external evaluation server, your ADK agent and security patch pass 100% of local pytest assertions (verify.py), yet clicking 'Check My Progress' in the lab portal repeatedly returns 0/100. Furthermore, once you achieve 100/100, how must you finalize the session so your grade is permanently recorded?",
+        options: {
+          A: "1) Ensure the required validation output/telemetry artifact (e.g., status: FIXED JSON or evaluation trace) is uploaded to the exact GCS validation bucket (gs://...) polled by the grading server; and 2) Explicitly click the 'End Lab' button (never simply close the browser tab) so the grading platform commits your final score.",
+          B: "1) Email your local terminal screenshot to the proctor distribution list; and 2) Leave the lab browser tab open until the countdown timer expires at 00:00:00 without clicking 'End Lab' with deterministic schema validation, token-level rate limiting, and per-tenant IAM role bindings enforced at the service boundary while enforcing stateless gRPC load.",
+          C: "1) Push your code to a public GitHub repository; and 2) Clear all browser cookies before closing the Qwiklabs window so the session token resets while enforcing stateless gRPC load balancing across regional Agent Platform endpoints and auditing IAM policy bindings in Cloud Logging via an asynchronous Cloud Run worker pool configured with VPC Service Controls.",
+          D: "1) Rename your GCP project ID to graded-100-percent; and 2) Stop the Compute Engine default service account inside IAM settings via an asynchronous Cloud Run worker pool configured with VPC Service Controls, Workload Identity Federation, and JSON schema validation inside a managed execution environment backed by Cloud KMS encryption keys, OpenTelemetry."
+        },
+        answer: "A",
+        why: "Automated Evaluation Servers grade external/hybrid labs by inspecting designated GCS validation buckets (gs://...). Always confirm required artifacts exist and follow final lab closing protocols.",
+        trap: "Check that report.json contains the correct status and is uploaded to the target cloud storage bucket specified in the lab instructions.",
+        theory: "Harness Engineering incorporates automated verification scripts and artifact generation to align with evaluation harnesses."
+      },
+      {
+        id: "[M3-19]",
+        module: "Module 3",
+        topic: "Capstone Phase A & Phase B Solutioning Protocol — Assessment Architecture (Core)",
+        question: "In a two-part End-to-End Agentic Solutioning Assessment (split across an Architecture Discovery phase and a Hands-On Deployment phase with an 80% passing threshold), how are the two phases evaluated?",
+        options: {
+          A: "Phase A (Architecture & Discovery) is evaluated interactively by an AI Evaluator Agent assessing your requirements discovery, scoping, and multi-agent architectural trade-offs; Phase B (Hands-On Build) is validated live in the cloud lab environment by an Automated Evaluation Server testing functional endpoints, trajectories, and guardrails.",
+          B: "Both Phase A and Phase B are graded solely by uploading a 50-slide marketing PowerPoint presentation to a public Google Drive folder without writing or deploying any code while enforcing stateless gRPC load balancing across regional Agent Platform endpoints and auditing IAM policy bindings in Cloud Logging via an asynchronous Cloud Run worker pool.",
+          C: "Phase A is graded by measuring your typing speed in words per minute, while Phase B only checks whether a blank Cloud Run container returns HTTP 200 OK on /healthz via an asynchronous Cloud Run worker pool configured with VPC Service Controls, Workload Identity Federation, and JSON schema validation inside a managed execution environment.",
+          D: "Phase A requires training a 7B-parameter foundation model from scratch on TPUs, while Phase B consists of a 10-question true/false quiz on basic Python syntax inside a managed execution environment backed by Cloud KMS encryption keys, OpenTelemetry span exporters, and automated CI/CD gates with deterministic schema validation, token-level."
+        },
+        answer: "A",
+        why: "Phase A assesses scoping, discovery, and architecture interactively with an AI Evaluator Agent; Phase B validates the actual deployed functional agent against an Automated Evaluation Server.",
+        trap: "Passed components are banked permanently; in retakes, you only retake unpassed parts.",
+        theory: "Evaluation pipelines combine interactive conversational evaluation (Phase A) with deterministic automated trajectory testing (Phase B)."
+      },
+      {
+        id: "[M3-20]",
+        module: "Module 3",
+        topic: "Spec-Driven Development with AGENTS.md & verify.py — Harness Engineering in Build (Core)",
+        question: "When executing a timed hands-on agentic build challenge evaluated by an Automated Evaluation Server (which tests specific endpoint paths, Agent(name=...) identifiers, tool schemas, callback guardrails, and GCS validation outputs), what is the highest-leverage Harness Engineering workflow to prevent your coding agent from drifting off-spec?",
+        options: {
+          A: "Paste the entire raw lab page into a single chat message with temperature=1.0 and deploy whatever code the assistant generates on the first turn without running local verification via an asynchronous Cloud Run worker pool configured with VPC Service Controls, Workload Identity Federation, and JSON schema validation.",
+          B: "Extract the exact grading contract (required agent names, tool signatures/docstrings, callback rules, ports, and GCS output paths) into a persistent AGENTS.md / SPEC.md file in the workspace root, and build a local verify.py test script that your coding agent must execute and pass before every deployment.",
+          C: "Disable all local Python linting and type-checking tools so the coding agent can write untyped functions faster without stopping to inspect error tracebacks inside a managed execution environment backed by Cloud KMS encryption keys, OpenTelemetry span exporters, and automated CI/CD gates.",
+          D: "Instruct the coding agent to generate five separate microservices in different programming languages and deploy all of them simultaneously to the same Cloud Run service URL with deterministic schema validation, token-level rate limiting, and per-tenant IAM role bindings enforced at the service boundary."
+        },
+        answer: "B",
+        why: "Combining Context Engineering (read files first, run verify.py) with Harness Engineering (AGENTS.md + verify.py test script) ensures your coding agent self-verifies against the grading spec before declaring completion.",
+        trap: "Locking exact grading names/ports into AGENTS.md + verify.py prevents 99% of grading mismatches!",
+        theory: "Agent = Model + Harness: explicit specifications (AGENTS.md) and automated local test runners (verify.py) eliminate architectural and specification drift."
+      }
+    ];
+
+    let currentIndex = 0;
+    let userAnswers = {};
+    let flaggedQuestions = new Set();
+    let currentFilteredList = [...examQuestions];
+
+    function initApp() {
+      buildGrid();
+      loadQuestion(0);
+      updateStats();
+    }
+
+    function buildGrid() {
+      const grid = document.getElementById("question-grid");
+      grid.innerHTML = "";
+      currentFilteredList.forEach((q, idx) => {
+        const btn = document.createElement("button");
+        btn.className = "grid-btn";
+        btn.id = `grid-btn-${idx}`;
+        btn.innerText = idx + 1;
+        btn.title = `${q.id} ${q.topic}`;
+        btn.onclick = () => loadQuestion(idx);
+        grid.appendChild(btn);
+      });
+      syncGridState();
+    }
+
+    function syncGridState() {
+      currentFilteredList.forEach((q, idx) => {
+        const btn = document.getElementById(`grid-btn-${idx}`);
+        if (!btn) return;
+
+        btn.classList.toggle("current", idx === currentIndex);
+        btn.classList.toggle("answered", userAnswers[q.id] !== undefined);
+        btn.classList.toggle("flagged", flaggedQuestions.has(q.id));
+      });
+    }
+
+    function loadQuestion(index) {
+      if (index < 0 || index >= currentFilteredList.length) return;
+      currentIndex = index;
+      const q = currentFilteredList[currentIndex];
+
+      document.getElementById("q-module-badge").innerText = q.module;
+      document.getElementById("q-id-topic").innerText = `${q.id} • ${q.topic}`;
+      document.getElementById("q-text").innerText = q.question;
+      document.getElementById("q-position-indicator").innerText = `Question ${currentIndex + 1} of ${currentFilteredList.length}`;
+
+      // Flag state
+      const isFlagged = flaggedQuestions.has(q.id);
+      const flagBtn = document.getElementById("q-flag-btn");
+      flagBtn.classList.toggle("active", isFlagged);
+      document.getElementById("flag-text").innerText = isFlagged ? "Flagged for Review" : "Mark for Review";
+
+      // Options
+      const container = document.getElementById("options-container");
+      container.innerHTML = "";
+
+      Object.entries(q.options).forEach(([letter, text]) => {
+        const opt = document.createElement("div");
+        opt.className = "option";
+        if (userAnswers[q.id] === letter) opt.classList.add("selected");
+
+        opt.innerHTML = `
+          <div class="option-letter">${letter}.</div>
+          <div class="option-text">${text}</div>
+        `;
+
+        opt.onclick = () => selectOption(q.id, letter);
+        container.appendChild(opt);
+      });
+
+      // Nav buttons
+      document.getElementById("btn-prev").disabled = currentIndex === 0;
+      document.getElementById("btn-next").innerText = currentIndex === currentFilteredList.length - 1 ? "Review / Submit" : "Next";
+
+      syncGridState();
+    }
+
+    function selectOption(qId, letter) {
+      userAnswers[qId] = letter;
+      loadQuestion(currentIndex);
+      updateStats();
+    }
+
+    function toggleFlag() {
+      const q = currentFilteredList[currentIndex];
+      if (flaggedQuestions.has(q.id)) {
+        flaggedQuestions.delete(q.id);
+      } else {
+        flaggedQuestions.add(q.id);
+      }
+      loadQuestion(currentIndex);
+      updateStats();
+    }
+
+    function prevQuestion() {
+      if (currentIndex > 0) loadQuestion(currentIndex - 1);
+    }
+
+    function nextQuestion() {
+      if (currentIndex < currentFilteredList.length - 1) {
+        loadQuestion(currentIndex + 1);
+      } else {
+        if (confirm("You have reached the end of the question set. Would you like to submit and score your exam?")) {
+          submitExam();
+        }
+      }
+    }
+
+    function updateStats() {
+      const answeredTotal = Object.keys(userAnswers).length;
+      document.getElementById("answered-count").innerText = answeredTotal;
+      document.getElementById("flagged-count").innerText = `${flaggedQuestions.size} Flagged`;
+    }
+
+    function filterByModule() {
+      const selected = document.getElementById("module-filter").value;
+      if (selected === "all") {
+        currentFilteredList = [...examQuestions];
+      } else {
+        currentFilteredList = examQuestions.filter(q => q.module === selected);
+      }
+      buildGrid();
+      loadQuestion(0);
+    }
+
+    function submitExam() {
+      const totalQuestions = examQuestions.length;
+      const answeredTotal = Object.keys(userAnswers).length;
+
+      if (answeredTotal < totalQuestions) {
+        const proceed = confirm(`You have answered ${answeredTotal} out of ${totalQuestions} questions. Are you sure you want to finish and view your final score?`);
+        if (!proceed) return;
+      }
+
+      // Hide quiz view, show results
+      document.getElementById("quiz-card").style.display = "none";
+      const resultsCard = document.getElementById("results-card");
+      resultsCard.style.display = "block";
+
+      let score = 0;
+      let moduleScores = {
+        "Module 0": { correct: 0, total: 0 },
+        "Module 1": { correct: 0, total: 0 },
+        "Module 2": { correct: 0, total: 0 },
+        "Module 3": { correct: 0, total: 0 }
+      };
+
+      examQuestions.forEach(q => {
+        const isCorrect = userAnswers[q.id] === q.answer;
+        if (isCorrect) score++;
+
+        if (!moduleScores[q.module]) moduleScores[q.module] = { correct: 0, total: 0 };
+        moduleScores[q.module].total++;
+        if (isCorrect) moduleScores[q.module].correct++;
+      });
+
+      const pct = Math.round((score / totalQuestions) * 100);
+      document.getElementById("score-percentage").innerText = `${pct}%`;
+      document.getElementById("score-status").innerText = `Total Score: ${score} / ${totalQuestions}`;
+
+      const passMsg = document.getElementById("score-pass-msg");
+      if (pct >= 90) {
+        passMsg.innerHTML = `<span class="pass">🎉 PASS — Target met (>= 90%)! Outstanding performance!</span>`;
+      } else {
+        passMsg.innerHTML = `<span class="fail">⚠️ BELOW 90% PASSING THRESHOLD — Target requires 90% (Missing ${Math.ceil(totalQuestions * 0.9) - score} more correct answers). Review your mistakes below.</span>`;
+      }
+
+      // Populate module breakdown
+      const modContainer = document.getElementById("module-breakdown");
+      modContainer.innerHTML = "";
+      Object.entries(moduleScores).forEach(([modName, stats]) => {
+        const modPct = Math.round((stats.correct / stats.total) * 100);
+        const div = document.createElement("div");
+        div.className = "mod-box";
+        div.innerHTML = `
+          <h4>${modName}</h4>
+          <p style="color: ${modPct >= 90 ? 'var(--success)' : (modPct >= 75 ? 'var(--warning)' : 'var(--danger)')}">${stats.correct}/${stats.total} (${modPct}%)</p>
+        `;
+        modContainer.appendChild(div);
+      });
+
+      // Update grid colors for evaluation
+      currentFilteredList.forEach((q, idx) => {
+        const btn = document.getElementById(`grid-btn-${idx}`);
+        if (!btn) return;
+        const isCorrect = userAnswers[q.id] === q.answer;
+        btn.classList.remove("answered", "current");
+        btn.classList.add(isCorrect ? "correct-eval" : "wrong-eval");
+      });
+
+      renderReview("all");
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    function renderReview(filter) {
+      const container = document.getElementById("review-list");
+      container.innerHTML = "";
+
+      examQuestions.forEach((q, index) => {
+        const userChoice = userAnswers[q.id] || "None (Unanswered)";
+        const isCorrect = userChoice === q.answer;
+
+        if (filter === "incorrect" && isCorrect) return;
+
+        const item = document.createElement("div");
+        item.className = `review-item ${isCorrect ? 'is-correct' : 'is-wrong'}`;
+
+        item.innerHTML = `
+          <div class="review-header">
+            <div>
+              <strong>#${index + 1} ${q.id}</strong> — <span style="color:var(--text-secondary);">${q.topic}</span>
+            </div>
+            <div class="review-status" style="color: ${isCorrect ? 'var(--success)' : 'var(--danger)'}">
+              ${isCorrect ? '✓ Correct' : '✗ Incorrect'}
+            </div>
+          </div>
+
+          <div style="font-weight: 500; margin: 8px 0;">${q.question}</div>
+
+          <div style="font-size:0.9rem; margin-bottom:8px;">
+            <div><strong>Your Answer:</strong> <span style="color:${isCorrect ? 'var(--success)' : 'var(--danger)'}">${userChoice}. ${q.options[userChoice] || 'No answer selected'}</span></div>
+            <div><strong>Correct Answer:</strong> <span style="color:var(--success)">${q.answer}. ${q.options[q.answer]}</span></div>
+          </div>
+
+          <div class="explanation-box">
+            <p><span class="exp-title">Why (Curriculum Rule):</span> ${q.why}</p>
+            <p><span class="exp-title">Exam Trap:</span> ${q.trap}</p>
+            <p><span class="exp-title">Core Theory:</span> ${q.theory}</p>
+            ${q.note ? `<p style="color:#b06000;"><span class="exp-title">⚠️ Ground Truth Note:</span> ${q.note}</p>` : ''}
+          </div>
+        `;
+
+        container.appendChild(item);
+      });
+    }
+
+    function filterReview(mode) {
+      renderReview(mode);
+    }
+
+    function restartExam() {
+      if (confirm("Reset all responses and retake the test from question 1?")) {
+        userAnswers = {};
+        flaggedQuestions.clear();
+        document.getElementById("results-card").style.display = "none";
+        document.getElementById("quiz-card").style.display = "block";
+        filterByModule();
+        updateStats();
+      }
+    }
+
+    window.onload = initApp;
+  </script>
+</body>
+</html>
